@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق الموقع</title>
+    <title>تطبيق المواقع العراقية</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
         .gradient-background {
@@ -22,6 +22,12 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .select-location {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: left 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
     </style>
 </head>
 <body class="gradient-background min-h-screen">
@@ -34,48 +40,39 @@
                 </svg>
             </div>
             
-            <h1 class="text-2xl font-bold text-center text-gray-800">البحث عن المواقع</h1>
+            <h1 class="text-2xl font-bold text-center text-gray-800">المواقع العراقية</h1>
             
-            <!-- حقل البحث -->
+            <!-- قائمة المدن -->
+            <div class="space-y-2">
+                <select 
+                    id="citySelect"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent select-location appearance-none"
+                >
+                    <option value="">اختر المدينة...</option>
+                </select>
+                <button
+                    id="showCityButton"
+                    class="w-full py-3 px-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow transition duration-200"
+                >
+                    عرض الموقع المحدد
+                </button>
+            </div>
+
+            <!-- البحث -->
             <div class="space-y-2">
                 <input 
                     type="text" 
                     id="searchInput"
-                    placeholder="ادخل اسم المكان للبحث..."
+                    placeholder="ابحث عن أي مكان..."
                     class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                 <button
                     id="searchButton"
-                    class="w-full py-3 px-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow transition duration-200"
+                    class="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow transition duration-200"
                 >
-                    بحث عن المكان
+                    بحث
                 </button>
             </div>
-
-            <!-- زر موقع الهاشمية -->
-            <button
-                id="hashimiyaButton"
-                class="w-full py-3 px-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg shadow transition duration-200 flex items-center justify-center"
-            >
-                <span>عرض موقع الهاشمية</span>
-            </button>
-
-            <!-- فاصل -->
-            <div class="relative">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-300"></div>
-                </div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="px-2 bg-white text-gray-500">أو</span>
-                </div>
-            </div>
-
-            <button
-                id="locationButton"
-                class="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow transition duration-200 flex items-center justify-center"
-            >
-                <span>استخدام موقعي الحالي</span>
-            </button>
 
             <!-- معلومات الموقع -->
             <div id="locationInfo" class="hidden bg-gray-50 rounded-lg p-4">
@@ -107,7 +104,47 @@
     </div>
 
     <script>
-        const locationButton = document.getElementById('locationButton');
+        const locationCoordinates = {
+            "بغداد": { lat: 33.3152, lng: 44.3661 },
+            "الكرخ": { lat: 33.3024, lng: 44.3937 },
+            "الرصافة": { lat: 33.3319, lng: 44.4445 },
+            "البصرة": { lat: 30.5085, lng: 47.7804 },
+            "نينوى": { lat: 36.3359, lng: 43.1194 },
+            "الموصل": { lat: 36.3359, lng: 43.1194 },
+            "النجف": { lat: 31.9892, lng: 44.3405 },
+            "الكوفة": { lat: 32.0343, lng: 44.4019 },
+            "كربلاء": { lat: 32.6101, lng: 44.0241 },
+            "الحسينية": { lat: 32.6239, lng: 44.0179 },
+            "أربيل": { lat: 36.1901, lng: 44.0091 },
+            "كركوك": { lat: 35.4681, lng: 44.3923 },
+            "الأنبار": { lat: 33.3784, lng: 43.1441 },
+            "الرمادي": { lat: 33.4250, lng: 43.3001 },
+            "الفلوجة": { lat: 33.3538, lng: 43.7789 },
+            "بابل": { lat: 32.4680, lng: 44.4491 },
+            "الحلة": { lat: 32.4689, lng: 44.4217 },
+            "المسيب": { lat: 32.8471, lng: 44.2907 },
+            "الهاشمية": { lat: 32.2482, lng: 44.6027 },
+            "القاسم": { lat: 32.2973, lng: 44.5907 },
+            "ديالى": { lat: 33.7752, lng: 44.6451 },
+            "بعقوبة": { lat: 33.7474, lng: 44.6537 },
+            "ذي قار": { lat: 31.0529, lng: 46.2590 },
+            "الناصرية": { lat: 31.0529, lng: 46.2590 },
+            "السليمانية": { lat: 35.5556, lng: 45.4350 },
+            "صلاح الدين": { lat: 34.6108, lng: 43.6782 },
+            "تكريت": { lat: 34.6707, lng: 43.6789 },
+            "واسط": { lat: 32.5141, lng: 45.8206 },
+            "الكوت": { lat: 32.5141, lng: 45.8206 },
+            "ميسان": { lat: 31.8389, lng: 47.1451 },
+            "العمارة": { lat: 31.8389, lng: 47.1451 },
+            "المثنى": { lat: 31.3289, lng: 45.2792 },
+            "السماوة": { lat: 31.3199, lng: 45.2847 },
+            "دهوك": { lat: 36.8695, lng: 42.9505 },
+            "القادسية": { lat: 31.9889, lng: 44.9252 },
+            "الديوانية": { lat: 31.9889, lng: 44.9252 }
+        };
+
+        const citySelect = document.getElementById('citySelect');
+        const showCityButton = document.getElementById('showCityButton');
         const searchButton = document.getElementById('searchButton');
         const searchInput = document.getElementById('searchInput');
         const locationInfo = document.getElementById('locationInfo');
@@ -120,15 +157,23 @@
 
         let currentLocation = null;
 
+        // إضافة المدن إلى القائمة المنسدلة
+        Object.keys(locationCoordinates).sort().forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            citySelect.appendChild(option);
+        });
+
         function showLoading() {
             loadingIndicator.classList.remove('hidden');
-            locationButton.classList.add('hidden');
+            showCityButton.classList.add('hidden');
             searchButton.classList.add('hidden');
         }
 
         function hideLoading() {
             loadingIndicator.classList.add('hidden');
-            locationButton.classList.remove('hidden');
+            showCityButton.classList.remove('hidden');
             searchButton.classList.remove('hidden');
         }
 
@@ -140,6 +185,24 @@
             mapLink.href = `https://www.google.com/maps?q=${latitude},${longitude}`;
             locationInfo.classList.remove('hidden');
         }
+
+        // عرض موقع المدينة المحددة
+        showCityButton.addEventListener('click', async () => {
+            const selectedCity = citySelect.value;
+            if (!selectedCity) {
+                alert('الرجاء اختيار مدينة');
+                return;
+            }
+
+            showLoading();
+            const coords = locationCoordinates[selectedCity];
+            updateLocationDisplay(
+                coords.lat,
+                coords.lng,
+                selectedCity
+            );
+            hideLoading();
+        });
 
         // البحث عن موقع
         searchButton.addEventListener('click', async () => {
@@ -173,36 +236,6 @@
             hideLoading();
         });
 
-        // تحديد الموقع الحالي
-        locationButton.addEventListener('click', () => {
-            if (navigator.geolocation) {
-                showLoading();
-
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        const { latitude, longitude } = position.coords;
-                        
-                        try {
-                            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-                            const data = await response.json();
-                            updateLocationDisplay(latitude, longitude, data.display_name);
-                        } catch (error) {
-                            updateLocationDisplay(latitude, longitude);
-                            console.error('Error getting address:', error);
-                        }
-
-                        hideLoading();
-                    },
-                    (error) => {
-                        alert('حدث خطأ في تحديد الموقع: ' + error.message);
-                        hideLoading();
-                    }
-                );
-            } else {
-                alert('المتصفح لا يدعم تحديد الموقع');
-            }
-        });
-
         // نسخ الإحداثيات
         copyButton.addEventListener('click', () => {
             if (currentLocation) {
@@ -214,34 +247,6 @@
                     }, 2000);
                 });
             }
-        });
-
-        // عرض موقع الهاشمية
-        const hashimiyaButton = document.getElementById('hashimiyaButton');
-        hashimiyaButton.addEventListener('click', async () => {
-            showLoading();
-            const hashimiyaLocation = {
-                latitude: 32.2482,
-                longitude: 44.6027
-            };
-
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${hashimiyaLocation.latitude}&lon=${hashimiyaLocation.longitude}`);
-                const data = await response.json();
-                updateLocationDisplay(
-                    hashimiyaLocation.latitude,
-                    hashimiyaLocation.longitude,
-                    'الهاشمية، محافظة بابل، العراق'
-                );
-            } catch (error) {
-                updateLocationDisplay(
-                    hashimiyaLocation.latitude,
-                    hashimiyaLocation.longitude,
-                    'الهاشمية'
-                );
-                console.error('Error getting address:', error);
-            }
-            hideLoading();
         });
 
         // البحث عند الضغط على Enter
