@@ -7390,146 +7390,85 @@ class NotificationTester {
         };
     }
 }
-
 function captureCurrentLocation() {
-    let loadingDialog;
-
-    if (!navigator.geolocation) {
-        Swal.fire({
-            icon: 'error',
-            title: 'خطأ!',
-            text: 'متصفحك لا يدعم تحديد الموقع'
-        });
-        return;
-    }
-
-    // إظهار مؤشر التحميل
-    loadingDialog = Swal.fire({
-        title: 'جاري تحديد موقعك...',
-        text: 'يرجى الانتظار',
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            document.getElementById('driverLatitude').value = position.coords.latitude;
-            document.getElementById('driverLongitude').value = position.coords.longitude;
-            
-            // تحديث الموقع على الخريطة إذا كانت متاحة
-            if (window.map) {
-                const latLng = [position.coords.latitude, position.coords.longitude];
-                window.map.setView(latLng, 15);
-                
-                // إضافة أو تحديث علامة الموقع
-                if (window.locationMarker) {
-                    window.locationMarker.setLatLng(latLng);
-                } else {
-                    window.locationMarker = L.marker(latLng).addTo(window.map);
-                }
-            }
-
-            // إغلاق مؤشر التحميل أولاً
-            loadingDialog.close();
-            
-            // عرض رسالة النجاح
-            Swal.fire({
-                icon: 'success',
-                title: 'تم!',
-                text: 'تم تحديد موقعك بنجاح',
-                timer: 1500,
-                showConfirmButton: false
-            });
-        },
-        (error) => {
-            let errorMessage = 'حدث خطأ في تحديد الموقع';
-            switch (error.code) {
-                case error.PERMISSION_DENIED:
-                    errorMessage = 'تم رفض الوصول إلى الموقع. يرجى السماح للتطبيق باستخدام خدمة الموقع';
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    errorMessage = 'معلومات الموقع غير متوفرة';
-                    break;
-                case error.TIMEOUT:
-                    errorMessage = 'انتهت مهلة طلب الموقع';
-                    break;
-            }
-            // إغلاق مؤشر التحميل أولاً
-            loadingDialog.close();
-            
-            // عرض رسالة الخطأ
+    // إنشاء وعد لمعالجة تحديد الموقع
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
             Swal.fire({
                 icon: 'error',
                 title: 'خطأ!',
-                text: errorMessage
+                text: 'متصفحك لا يدعم تحديد الموقع'
             });
-        },
-        {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-        }
-    );
-}
-
-// تحديث دالة handleAddDriver لتشمل بيانات الموقع
-async function handleAddDriver(event) {
-    event.preventDefault();
-    showLoading();
-
-    try {
-        const latitude = document.getElementById('driverLatitude').value;
-        const longitude = document.getElementById('driverLongitude').value;
-
-        if (!latitude || !longitude) {
-            throw new Error('يرجى تحديد موقع السائق أولاً');
+            reject('Geolocation not supported');
+            return;
         }
 
-        const imageFile = document.getElementById('driverImage').files[0];
-        if (!imageFile) {
-            throw new Error('الرجاء اختيار صورة للسائق');
-        }
+        // عرض مؤشر التحميل
+        const loadingAlert = Swal.fire({
+            title: 'جاري تحديد موقعك...',
+            text: 'يرجى الانتظار',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
 
-        const imageRef = storage.ref(`drivers/${Date.now()}_${imageFile.name}`);
-        const uploadTask = await imageRef.put(imageFile);
-        const imageUrl = await uploadTask.ref.getDownloadURL();
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                // إغلاق مؤشر التحميل فوراً
+                loadingAlert.close();
 
-        const driverData = {
-            name: document.getElementById('driverName').value,
-            phone: document.getElementById('driverPhone').value,
-            carType: document.getElementById('carType').value,
-            carModel: document.getElementById('carModel').value,
-            location: document.getElementById('driverLocation').value,
-            coordinates: {
-                lat: parseFloat(latitude),
-                lng: parseFloat(longitude)
+                // تحديث حقول الإحداثيات
+                document.getElementById('driverLatitude').value = position.coords.latitude;
+                document.getElementById('driverLongitude').value = position.coords.longitude;
+
+                // عرض رسالة النجاح لفترة قصيرة
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم!',
+                    text: 'تم تحديد موقعك بنجاح',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                resolve(position);
             },
-            bio: document.getElementById('driverBio').value,
-            imageUrl: imageUrl,
-            rating: 5,
-            trips: 0,
-            active: true,
-            createdAt: firebase.database.ServerValue.TIMESTAMP
-        };
+            (error) => {
+                // إغلاق مؤشر التحميل
+                loadingAlert.close();
 
-        await database.ref('drivers').push(driverData);
+                let errorMessage = 'حدث خطأ في تحديد الموقع';
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'تم رفض الوصول إلى الموقع. يرجى السماح للتطبيق باستخدام خدمة الموقع';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'معلومات الموقع غير متوفرة';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = 'انتهت مهلة طلب الموقع';
+                        break;
+                }
 
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addDriverModal'));
-        modal.hide();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ!',
+                    text: errorMessage
+                });
 
-        document.getElementById('addDriverForm').reset();
-        showToast('تم إضافة السائق بنجاح');
-        loadDrivers();
-    } catch (error) {
-        console.error('Error adding driver:', error);
-        showToast(error.message, 'error');
-    } finally {
-        hideLoading();
-    }
+                reject(error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    });
 }
+
 
 // تشغيل الاختبار عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', addTestButton);
