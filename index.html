@@ -5192,27 +5192,63 @@ notificationHandler.initialize().catch(console.error);
     }
 
     // مثال على الاستخدام في دالة إضافة السائق
-    async function handleAddDriver(event) {
-        event.preventDefault();
+  async function handleAddDriver(event) {
+    event.preventDefault();
+    showLoading();
 
-        const location = document.getElementById('driverLocation').value;
-        const coordinates = getCoordinatesForLocation(location);
+    try {
+        const imageFile = document.getElementById('driverImage').files[0];
+        if (!imageFile) {
+            throw new Error('الرجاء اختيار صورة للسائق');
+        }
 
-        // استخدام الإحداثيات في البيانات المرسلة
+        // الحصول على الإحداثيات مباشرة من حقول الإدخال
+        const latitude = parseFloat(document.getElementById('driverLatitude').value);
+        const longitude = parseFloat(document.getElementById('driverLongitude').value);
+        
+        // التحقق من وجود الإحداثيات
+        if (!latitude || !longitude) {
+            throw new Error('يرجى تحديد موقع السائق أولاً');
+        }
+
+        const imageRef = storage.ref(`drivers/${Date.now()}_${imageFile.name}`);
+        const uploadTask = await imageRef.put(imageFile);
+        const imageUrl = await uploadTask.ref.getDownloadURL();
 
         const driverData = {
-            // ... البيانات الأخرى
-            latitude: coordinates.lat,
-            longitude: coordinates.lng
+            name: document.getElementById('driverName').value,
+            phone: document.getElementById('driverPhone').value,
+            carType: document.getElementById('carType').value,
+            carModel: document.getElementById('carModel').value,
+            location: document.getElementById('driverLocation').value, // المحافظة فقط
+            coordinates: {
+                lat: latitude,
+                lng: longitude
+            },
+            bio: document.getElementById('driverBio').value,
+            imageUrl: imageUrl,
+            rating: 5,
+            trips: 0,
+            active: true,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
         };
 
-        // إكمال عملية إضافة السائق
-        try {
-            // ... كود إرسال البيانات
-        } catch (error) {
-            console.error('Error adding driver:', error);
-        }
+        await database.ref('drivers').push(driverData);
+
+        // إغلاق النافذة المنبثقة بعد النجاح
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addDriverModal'));
+        modal.hide();
+
+        document.getElementById('addDriverForm').reset();
+        showToast('تم إضافة السائق بنجاح');
+        loadDrivers();
+    } catch (error) {
+        console.error('Error adding driver:', error);
+        showToast(error.message, 'error');
+    } finally {
+        hideLoading();
     }
+}
 
     function handleLocationError(error) {
         // التعامل مع خطأ في الموقع الجغرافي
@@ -5838,56 +5874,63 @@ notificationHandler.initialize().catch(console.error);
             reader.readAsDataURL(file);
         }
     }
+async function handleAddDriver(event) {
+    event.preventDefault();
+    showLoading();
 
-    async function handleAddDriver(event) {
-        event.preventDefault();
-        showLoading();
-
-        try {
-            const imageFile = document.getElementById('driverImage').files[0];
-            if (!imageFile) {
-                throw new Error('الرجاء اختيار صورة للسائق');
-            }
-
-            // الحصول على الإحداثيات من اسم الموقع
-            const location = document.getElementById('driverLocation').value;
-            const coordinates = await getCoordinatesForLocation(location);
-
-            const imageRef = storage.ref(`drivers/${Date.now()}_${imageFile.name}`);
-            const uploadTask = await imageRef.put(imageFile);
-            const imageUrl = await uploadTask.ref.getDownloadURL();
-
-            const driverData = {
-                name: document.getElementById('driverName').value,
-                phone: document.getElementById('driverPhone').value,
-                carType: document.getElementById('carType').value,
-                carModel: document.getElementById('carModel').value,
-                location: location,
-                coordinates: coordinates, // استخدام الإحداثيات التي تم الحصول عليها
-                bio: document.getElementById('driverBio').value,
-                imageUrl: imageUrl,
-                rating: 5,
-                trips: 0,
-                active: true,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            };
-
-            await database.ref('drivers').push(driverData);
-
-            // إغلاق النافذة المنبثقة بعد النجاح
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addDriverModal'));
-            modal.hide();
-
-            document.getElementById('addDriverForm').reset();
-            showToast('تم إضافة السائق بنجاح');
-            loadDrivers();
-        } catch (error) {
-            console.error('Error adding driver:', error);
-            showToast(error.message, 'error');
-        } finally {
-            hideLoading();
+    try {
+        const imageFile = document.getElementById('driverImage').files[0];
+        if (!imageFile) {
+            throw new Error('الرجاء اختيار صورة للسائق');
         }
+
+        // الحصول على الإحداثيات مباشرة من حقول الإدخال
+        const latitude = parseFloat(document.getElementById('driverLatitude').value);
+        const longitude = parseFloat(document.getElementById('driverLongitude').value);
+        
+        // التحقق من وجود الإحداثيات
+        if (!latitude || !longitude) {
+            throw new Error('يرجى تحديد موقع السائق أولاً');
+        }
+
+        const imageRef = storage.ref(`drivers/${Date.now()}_${imageFile.name}`);
+        const uploadTask = await imageRef.put(imageFile);
+        const imageUrl = await uploadTask.ref.getDownloadURL();
+
+        const driverData = {
+            name: document.getElementById('driverName').value,
+            phone: document.getElementById('driverPhone').value,
+            carType: document.getElementById('carType').value,
+            carModel: document.getElementById('carModel').value,
+            location: document.getElementById('driverLocation').value, // المحافظة فقط
+            coordinates: {
+                lat: latitude,
+                lng: longitude
+            },
+            bio: document.getElementById('driverBio').value,
+            imageUrl: imageUrl,
+            rating: 5,
+            trips: 0,
+            active: true,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+        };
+
+        await database.ref('drivers').push(driverData);
+
+        // إغلاق النافذة المنبثقة بعد النجاح
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addDriverModal'));
+        modal.hide();
+
+        document.getElementById('addDriverForm').reset();
+        showToast('تم إضافة السائق بنجاح');
+        loadDrivers();
+    } catch (error) {
+        console.error('Error adding driver:', error);
+        showToast(error.message, 'error');
+    } finally {
+        hideLoading();
     }
+}
 
     function bookDriver(driverId) {
         showLoading();
