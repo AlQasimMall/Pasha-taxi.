@@ -36,7 +36,7 @@
             
             <h1 class="text-2xl font-bold text-center text-gray-800">البحث عن المواقع</h1>
             
-            <!-- حقل البحث -->
+            <!-- البحث باسم المكان -->
             <div class="space-y-2">
                 <input 
                     type="text" 
@@ -52,7 +52,32 @@
                 </button>
             </div>
 
-            <!-- زر الموقع الحالي -->
+            <!-- البحث بالإحداثيات -->
+            <div class="space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                    <input 
+                        type="number" 
+                        id="latitudeInput"
+                        placeholder="خط العرض"
+                        value="32.3572765"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                    <input 
+                        type="number" 
+                        id="longitudeInput"
+                        placeholder="خط الطول"
+                        value="44.6476708"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                </div>
+                <button
+                    id="coordinatesButton"
+                    class="w-full py-3 px-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg shadow transition duration-200"
+                >
+                    البحث بالإحداثيات
+                </button>
+            </div>
+
             <div class="relative">
                 <div class="absolute inset-0 flex items-center">
                     <div class="w-full border-t border-gray-300"></div>
@@ -62,11 +87,12 @@
                 </div>
             </div>
 
+            <!-- زر الموقع الحالي -->
             <button
                 id="locationButton"
-                class="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow transition duration-200 flex items-center justify-center"
+                class="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow transition duration-200"
             >
-                <span>استخدام موقعي الحالي</span>
+                استخدام موقعي الحالي
             </button>
 
             <!-- معلومات الموقع -->
@@ -88,12 +114,6 @@
                 >
                     نسخ الإحداثيات
                 </button>
-                <button 
-                    id="copyLinkButton"
-                    class="mt-2 w-full py-2 px-4 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition duration-200"
-                >
-                    نسخ رابط الموقع
-                </button>
             </div>
 
             <div id="loadingIndicator" class="hidden">
@@ -107,13 +127,15 @@
     <script>
         const locationButton = document.getElementById('locationButton');
         const searchButton = document.getElementById('searchButton');
+        const coordinatesButton = document.getElementById('coordinatesButton');
         const searchInput = document.getElementById('searchInput');
+        const latitudeInput = document.getElementById('latitudeInput');
+        const longitudeInput = document.getElementById('longitudeInput');
         const locationInfo = document.getElementById('locationInfo');
         const latitudeText = document.getElementById('latitude');
         const longitudeText = document.getElementById('longitude');
         const addressDisplay = document.getElementById('addressDisplay');
         const copyButton = document.getElementById('copyButton');
-        const copyLinkButton = document.getElementById('copyLinkButton');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const mapLink = document.getElementById('mapLink');
 
@@ -123,12 +145,14 @@
             loadingIndicator.classList.remove('hidden');
             locationButton.classList.add('hidden');
             searchButton.classList.add('hidden');
+            coordinatesButton.classList.add('hidden');
         }
 
         function hideLoading() {
             loadingIndicator.classList.add('hidden');
             locationButton.classList.remove('hidden');
             searchButton.classList.remove('hidden');
+            coordinatesButton.classList.remove('hidden');
         }
 
         function updateLocationDisplay(latitude, longitude, address = '') {
@@ -140,7 +164,31 @@
             locationInfo.classList.remove('hidden');
         }
 
-        // البحث عن موقع
+        // البحث بالإحداثيات
+        coordinatesButton.addEventListener('click', async () => {
+            const latitude = parseFloat(latitudeInput.value);
+            const longitude = parseFloat(longitudeInput.value);
+
+            if (isNaN(latitude) || isNaN(longitude)) {
+                alert('الرجاء إدخال إحداثيات صحيحة');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                const data = await response.json();
+                updateLocationDisplay(latitude, longitude, data.display_name);
+            } catch (error) {
+                updateLocationDisplay(latitude, longitude);
+                console.error('Error getting address:', error);
+            }
+
+            hideLoading();
+        });
+
+        // البحث عن موقع بالاسم
         searchButton.addEventListener('click', async () => {
             const searchQuery = searchInput.value.trim();
             if (!searchQuery) {
@@ -206,26 +254,10 @@
         copyButton.addEventListener('click', () => {
             if (currentLocation) {
                 const text = `خط العرض: ${currentLocation.latitude}\nخط الطول: ${currentLocation.longitude}`;
-                if (addressDisplay.textContent) {
-                    text += `\nالعنوان: ${addressDisplay.textContent}`;
-                }
                 navigator.clipboard.writeText(text).then(() => {
                     copyButton.textContent = 'تم النسخ!';
                     setTimeout(() => {
                         copyButton.textContent = 'نسخ الإحداثيات';
-                    }, 2000);
-                });
-            }
-        });
-
-        // نسخ رابط الموقع
-        copyLinkButton.addEventListener('click', () => {
-            if (currentLocation) {
-                const mapUrl = `https://www.google.com/maps?q=${currentLocation.latitude},${currentLocation.longitude}`;
-                navigator.clipboard.writeText(mapUrl).then(() => {
-                    copyLinkButton.textContent = 'تم نسخ الرابط!';
-                    setTimeout(() => {
-                        copyLinkButton.textContent = 'نسخ رابط الموقع';
                     }, 2000);
                 });
             }
@@ -236,6 +268,11 @@
             if (event.key === 'Enter') {
                 searchButton.click();
             }
+        });
+
+        // تحميل الإحداثيات الافتراضية عند فتح التطبيق
+        window.addEventListener('load', () => {
+            coordinatesButton.click();
         });
     </script>
 </body>
