@@ -7391,7 +7391,26 @@ class NotificationTester {
     }
 }
 
+<!-- Replace the location URL input with these fields in the form -->
+<div class="col-md-12">
+    <div class="location-capture-section">
+        <label class="form-label">موقع السائق</label>
+        <div class="d-flex gap-2 mb-2">
+            <input type="text" class="form-control" id="driverLatitude" placeholder="خط العرض" readonly>
+            <input type="text" class="form-control" id="driverLongitude" placeholder="خط الطول" readonly>
+        </div>
+        <button type="button" class="btn btn-primary w-100" onclick="captureCurrentLocation()">
+            <i class="fas fa-location-arrow me-2"></i>
+            تحديد الموقع الحالي
+        </button>
+    </div>
+</div>
+
+<script>
+// دالة التقاط الموقع الحالي
 function captureCurrentLocation() {
+    let loadingDialog;
+
     if (!navigator.geolocation) {
         Swal.fire({
             icon: 'error',
@@ -7401,12 +7420,13 @@ function captureCurrentLocation() {
         return;
     }
 
-    Swal.fire({
+    // إظهار مؤشر التحميل
+    loadingDialog = Swal.fire({
         title: 'جاري تحديد موقعك...',
         text: 'يرجى الانتظار',
         allowOutsideClick: false,
         showConfirmButton: false,
-        willOpen: () => {
+        didOpen: () => {
             Swal.showLoading();
         }
     });
@@ -7429,10 +7449,16 @@ function captureCurrentLocation() {
                 }
             }
 
+            // إغلاق مؤشر التحميل أولاً
+            loadingDialog.close();
+            
+            // عرض رسالة النجاح
             Swal.fire({
                 icon: 'success',
                 title: 'تم!',
-                text: 'تم تحديد موقعك بنجاح'
+                text: 'تم تحديد موقعك بنجاح',
+                timer: 1500,
+                showConfirmButton: false
             });
         },
         (error) => {
@@ -7448,6 +7474,10 @@ function captureCurrentLocation() {
                     errorMessage = 'انتهت مهلة طلب الموقع';
                     break;
             }
+            // إغلاق مؤشر التحميل أولاً
+            loadingDialog.close();
+            
+            // عرض رسالة الخطأ
             Swal.fire({
                 icon: 'error',
                 title: 'خطأ!',
@@ -7517,7 +7547,7 @@ async function handleAddDriver(event) {
         hideLoading();
     }
 }
-
+</script>
 
 
 // تشغيل الاختبار عند تحميل الصفحة
