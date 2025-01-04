@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق الموقع</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .gradient-background {
+            background: linear-gradient(180deg, #EBF4FF 0%, #BFDBFE 100%);
+        }
+        .location-card {
+            transition: transform 0.2s;
+        }
+        .location-card:hover {
+            transform: translateY(-2px);
+        }
+        .loading {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="gradient-background min-h-screen">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="location-card bg-white rounded-xl shadow-lg p-6 w-full max-w-md space-y-4">
+            <div class="flex justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
+            
+            <h1 class="text-2xl font-bold text-center text-gray-800">موقعي الحالي</h1>
+            
+            <button
+                id="locationButton"
+                class="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow transition duration-200 flex items-center justify-center"
+            >
+                <span>عرض موقعي</span>
+            </button>
+
+            <div id="locationInfo" class="hidden bg-gray-50 rounded-lg p-4">
+                <p class="text-gray-700 text-center" id="latitude">خط العرض: </p>
+                <p class="text-gray-700 text-center" id="longitude">خط الطول: </p>
+                <button 
+                    id="copyButton"
+                    class="mt-2 w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition duration-200"
+                >
+                    نسخ الإحداثيات
+                </button>
+            </div>
+
+            <div id="loadingIndicator" class="hidden">
+                <div class="flex justify-center">
+                    <div class="loading h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const locationButton = document.getElementById('locationButton');
+        const locationInfo = document.getElementById('locationInfo');
+        const latitudeText = document.getElementById('latitude');
+        const longitudeText = document.getElementById('longitude');
+        const copyButton = document.getElementById('copyButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        let currentLocation = null;
+
+        locationButton.addEventListener('click', () => {
+            if (navigator.geolocation) {
+                loadingIndicator.classList.remove('hidden');
+                locationButton.classList.add('hidden');
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        currentLocation = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        };
+
+                        latitudeText.textContent = `خط العرض: ${currentLocation.latitude}`;
+                        longitudeText.textContent = `خط الطول: ${currentLocation.longitude}`;
+                        
+                        locationInfo.classList.remove('hidden');
+                        loadingIndicator.classList.add('hidden');
+                        locationButton.classList.remove('hidden');
+                    },
+                    (error) => {
+                        alert('حدث خطأ في تحديد الموقع: ' + error.message);
+                        loadingIndicator.classList.add('hidden');
+                        locationButton.classList.remove('hidden');
+                    }
+                );
+            } else {
+                alert('المتصفح لا يدعم تحديد الموقع');
+            }
+        });
+
+        copyButton.addEventListener('click', () => {
+            if (currentLocation) {
+                const text = `خط العرض: ${currentLocation.latitude}\nخط الطول: ${currentLocation.longitude}`;
+                navigator.clipboard.writeText(text).then(() => {
+                    copyButton.textContent = 'تم النسخ!';
+                    setTimeout(() => {
+                        copyButton.textContent = 'نسخ الإحداثيات';
+                    }, 2000);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
