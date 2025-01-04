@@ -7391,23 +7391,6 @@ class NotificationTester {
     }
 }
 
-<!-- Replace the location URL input with these fields in the form -->
-<div class="col-md-12">
-    <div class="location-capture-section">
-        <label class="form-label">موقع السائق</label>
-        <div class="d-flex gap-2 mb-2">
-            <input type="text" class="form-control" id="driverLatitude" placeholder="خط العرض" readonly>
-            <input type="text" class="form-control" id="driverLongitude" placeholder="خط الطول" readonly>
-        </div>
-        <button type="button" class="btn btn-primary w-100" onclick="captureCurrentLocation()">
-            <i class="fas fa-location-arrow me-2"></i>
-            تحديد الموقع الحالي
-        </button>
-    </div>
-</div>
-
-<script>
-// دالة التقاط الموقع الحالي
 function captureCurrentLocation() {
     let loadingDialog;
 
@@ -7547,7 +7530,6 @@ async function handleAddDriver(event) {
         hideLoading();
     }
 }
-
 
 // تشغيل الاختبار عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', addTestButton);
