@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دليل المواقع العراقية</title>
+    <title>تطبيق الموقع</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
         .gradient-background {
@@ -14,6 +14,13 @@
         }
         .location-card:hover {
             transform: translateY(-2px);
+        }
+        .loading {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -27,139 +34,186 @@
                 </svg>
             </div>
             
-            <h1 class="text-2xl font-bold text-center text-gray-800">دليل المواقع العراقية</h1>
+            <h1 class="text-2xl font-bold text-center text-gray-800">البحث عن المواقع</h1>
             
-            <div class="space-y-4">
+            <!-- حقل البحث -->
+            <div class="space-y-2">
                 <input 
                     type="text" 
                     id="searchInput"
-                    placeholder="ابحث عن مدينة..."
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="ادخل اسم المكان للبحث..."
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                
-                <div id="searchResults" class="hidden bg-gray-50 rounded-lg p-4">
-                    <div class="space-y-2">
-                        <p class="font-bold text-gray-700">إحداثيات الموقع:</p>
-                        <div id="coordinatesBox" class="bg-gray-100 p-3 rounded-lg">
-                            <code class="text-sm text-gray-800" id="coordinatesText"></code>
-                        </div>
-                        
-                        <a 
-                            id="mapLink" 
-                            href="#" 
-                            target="_blank" 
-                            class="block w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white text-center rounded-lg transition duration-200"
-                        >
-                            فتح في الخريطة
-                        </a>
-                        
-                        <button 
-                            id="copyButton"
-                            class="w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition duration-200"
-                        >
-                            نسخ الكود
-                        </button>
-                    </div>
+                <button
+                    id="searchButton"
+                    class="w-full py-3 px-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow transition duration-200"
+                >
+                    بحث عن المكان
+                </button>
+            </div>
+
+            <!-- زر الموقع الحالي -->
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white text-gray-500">أو</span>
+                </div>
+            </div>
+
+            <button
+                id="locationButton"
+                class="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow transition duration-200 flex items-center justify-center"
+            >
+                <span>استخدام موقعي الحالي</span>
+            </button>
+
+            <!-- معلومات الموقع -->
+            <div id="locationInfo" class="hidden bg-gray-50 rounded-lg p-4">
+                <p class="text-gray-700 text-center" id="latitude">خط العرض: </p>
+                <p class="text-gray-700 text-center" id="longitude">خط الطول: </p>
+                <p class="text-gray-700 text-center font-semibold mt-2" id="addressDisplay"></p>
+                <a 
+                    id="mapLink" 
+                    href="#" 
+                    target="_blank" 
+                    class="mt-2 block w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white text-center rounded-lg transition duration-200"
+                >
+                    فتح في الخريطة
+                </a>
+                <button 
+                    id="copyButton"
+                    class="mt-2 w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition duration-200"
+                >
+                    نسخ الإحداثيات
+                </button>
+            </div>
+
+            <div id="loadingIndicator" class="hidden">
+                <div class="flex justify-center">
+                    <div class="loading h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-    const locationCoordinates = {
-        "بغداد": { lat: 33.3152, lng: 44.3661 },
-        "الكرخ": { lat: 33.3024, lng: 44.3937 },
-        "الرصافة": { lat: 33.3319, lng: 44.4445 },
-        "البصرة": { lat: 30.5085, lng: 47.7804 },
-        "نينوى": { lat: 36.3359, lng: 43.1194 },
-        "الموصل": { lat: 36.3359, lng: 43.1194 },
-        "النجف": { lat: 31.9892, lng: 44.3405 },
-        "الكوفة": { lat: 32.0343, lng: 44.4019 },
-        "كربلاء": { lat: 32.6101, lng: 44.0241 },
-        "الحسينية": { lat: 32.6239, lng: 44.0179 },
-        "أربيل": { lat: 36.1901, lng: 44.0091 },
-        "كركوك": { lat: 35.4681, lng: 44.3923 },
-        "الأنبار": { lat: 33.3784, lng: 43.1441 },
-        "الرمادي": { lat: 33.4250, lng: 43.3001 },
-        "الفلوجة": { lat: 33.3538, lng: 43.7789 },
-        "بابل": { lat: 32.4680, lng: 44.4491 },
-        "الحلة": { lat: 32.4689, lng: 44.4217 },
-        "المسيب": { lat: 32.8471, lng: 44.2907 },
-        "الهاشمية": { lat: 32.2482, lng: 44.6027 },
-        "القاسم": { lat: 32.2973, lng: 44.5907 },
-        "ديالى": { lat: 33.7752, lng: 44.6451 },
-        "بعقوبة": { lat: 33.7474, lng: 44.6537 },
-        "ذي قار": { lat: 31.0529, lng: 46.2590 },
-        "الناصرية": { lat: 31.0529, lng: 46.2590 },
-        "السليمانية": { lat: 35.5556, lng: 45.4350 },
-        "صلاح الدين": { lat: 34.6108, lng: 43.6782 },
-        "تكريت": { lat: 34.6707, lng: 43.6789 },
-        "واسط": { lat: 32.5141, lng: 45.8206 },
-        "الكوت": { lat: 32.5141, lng: 45.8206 },
-        "ميسان": { lat: 31.8389, lng: 47.1451 },
-        "العمارة": { lat: 31.8389, lng: 47.1451 },
-        "المثنى": { lat: 31.3289, lng: 45.2792 },
-        "السماوة": { lat: 31.3199, lng: 45.2847 },
-        "دهوك": { lat: 36.8695, lng: 42.9505 },
-        "القادسية": { lat: 31.9889, lng: 44.9252 },
-        "الديوانية": { lat: 31.9889, lng: 44.9252 }
-    };
+        const locationButton = document.getElementById('locationButton');
+        const searchButton = document.getElementById('searchButton');
+        const searchInput = document.getElementById('searchInput');
+        const locationInfo = document.getElementById('locationInfo');
+        const latitudeText = document.getElementById('latitude');
+        const longitudeText = document.getElementById('longitude');
+        const addressDisplay = document.getElementById('addressDisplay');
+        const copyButton = document.getElementById('copyButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const mapLink = document.getElementById('mapLink');
 
-    const searchInput = document.getElementById('searchInput');
-    const searchResults = document.getElementById('searchResults');
-    const coordinatesText = document.getElementById('coordinatesText');
-    const mapLink = document.getElementById('mapLink');
-    const copyButton = document.getElementById('copyButton');
-    
-    let currentLocation = null;
+        let currentLocation = null;
 
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.trim();
-        if (searchTerm.length > 0) {
-            const location = findLocation(searchTerm);
-            if (location) {
-                showLocation(searchTerm, location);
-            } else {
-                hideResults();
+        function showLoading() {
+            loadingIndicator.classList.remove('hidden');
+            locationButton.classList.add('hidden');
+            searchButton.classList.add('hidden');
+        }
+
+        function hideLoading() {
+            loadingIndicator.classList.add('hidden');
+            locationButton.classList.remove('hidden');
+            searchButton.classList.remove('hidden');
+        }
+
+        function updateLocationDisplay(latitude, longitude, address = '') {
+            currentLocation = { latitude, longitude };
+            latitudeText.textContent = `خط العرض: ${latitude}`;
+            longitudeText.textContent = `خط الطول: ${longitude}`;
+            addressDisplay.textContent = address;
+            mapLink.href = `https://www.google.com/maps?q=${latitude},${longitude}`;
+            locationInfo.classList.remove('hidden');
+        }
+
+        // البحث عن موقع
+        searchButton.addEventListener('click', async () => {
+            const searchQuery = searchInput.value.trim();
+            if (!searchQuery) {
+                alert('الرجاء إدخال اسم المكان للبحث');
+                return;
             }
-        } else {
-            hideResults();
-        }
-    });
 
-    function findLocation(searchTerm) {
-        const normalizedSearch = searchTerm.replace(/[أإآ]/g, 'ا').replace(/[ةه]/g, 'ه').toLowerCase();
-        const locationEntry = Object.entries(locationCoordinates).find(([city]) => {
-            const normalizedCity = city.replace(/[أإآ]/g, 'ا').replace(/[ةه]/g, 'ه').toLowerCase();
-            return normalizedCity.includes(normalizedSearch);
+            showLoading();
+
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`);
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    const location = data[0];
+                    updateLocationDisplay(
+                        parseFloat(location.lat),
+                        parseFloat(location.lon),
+                        location.display_name
+                    );
+                } else {
+                    alert('لم يتم العثور على المكان');
+                }
+            } catch (error) {
+                alert('حدث خطأ في البحث عن المكان');
+                console.error(error);
+            }
+
+            hideLoading();
         });
-        return locationEntry ? locationEntry[1] : null;
-    }
 
-    function showLocation(cityName, location) {
-        currentLocation = { cityName, ...location };
-        const codeString = `"${cityName}": { lat: ${location.lat}, lng: ${location.lng} }`;
-        coordinatesText.textContent = codeString;
-        mapLink.href = `https://www.google.com/maps?q=${location.lat},${location.lng}`;
-        searchResults.classList.remove('hidden');
-    }
+        // تحديد الموقع الحالي
+        locationButton.addEventListener('click', () => {
+            if (navigator.geolocation) {
+                showLoading();
 
-    function hideResults() {
-        searchResults.classList.add('hidden');
-        currentLocation = null;
-    }
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const { latitude, longitude } = position.coords;
+                        
+                        try {
+                            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                            const data = await response.json();
+                            updateLocationDisplay(latitude, longitude, data.display_name);
+                        } catch (error) {
+                            updateLocationDisplay(latitude, longitude);
+                            console.error('Error getting address:', error);
+                        }
 
-    copyButton.addEventListener('click', () => {
-        if (currentLocation) {
-            const textToCopy = coordinatesText.textContent;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                copyButton.textContent = 'تم النسخ!';
-                setTimeout(() => {
-                    copyButton.textContent = 'نسخ الكود';
-                }, 2000);
-            });
-        }
-    });
+                        hideLoading();
+                    },
+                    (error) => {
+                        alert('حدث خطأ في تحديد الموقع: ' + error.message);
+                        hideLoading();
+                    }
+                );
+            } else {
+                alert('المتصفح لا يدعم تحديد الموقع');
+            }
+        });
+
+        // نسخ الإحداثيات
+        copyButton.addEventListener('click', () => {
+            if (currentLocation) {
+                const text = `خط العرض: ${currentLocation.latitude}\nخط الطول: ${currentLocation.longitude}`;
+                navigator.clipboard.writeText(text).then(() => {
+                    copyButton.textContent = 'تم النسخ!';
+                    setTimeout(() => {
+                        copyButton.textContent = 'نسخ الإحداثيات';
+                    }, 2000);
+                });
+            }
+        });
+
+        // البحث عند الضغط على Enter
+        searchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                searchButton.click();
+            }
+        });
     </script>
 </body>
 </html>
