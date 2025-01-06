@@ -4192,7 +4192,7 @@ body {
 /* حاوية الخريطة */
 #map {
     margin-top: 20px; /* مسافة من العناصر العلوية */
-    height: 50vh;
+    height: 80vh;
     width: 100%;
     border: 2px solid #FFD700;
     border-radius: 20px;
@@ -4202,10 +4202,10 @@ body {
 
 /* تحسين مظهر حاوية الخريطة مع إضافة المسافات */
 #map {
-    height: 50vh; /* ارتفاع نسبي */
+    height: 60vh; /* ارتفاع نسبي */
     width: 100%;
     border: 2px solid #FFD700;
-    border-radius: 20px;
+    border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     margin: 50px 0; /* إضافة مسافة 50px من الأعلى والأسفل */
@@ -4234,7 +4234,80 @@ body {
     padding-left: 0;
     padding-right: 0;
 }
+/* تحسين مظهر الخريطة وعناصر التحكم */
+#map {
+    height: 60vh;
+    width: 100%;
+    border: 2px solid #FFD700;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    margin: 50px 0;
+    position: relative;
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+    transition: height 0.3s ease;
+}
 
+/* أنماط أزرار التحكم في الحجم */
+.map-size-control {
+    background: none;
+    margin: 10px !important;
+}
+
+.map-size-control .size-btn {
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #FFD700;
+    border-radius: 50%;
+    color: #FFD700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5px 0;
+    transition: all 0.3s ease;
+}
+
+.map-size-control .size-btn:hover {
+    background: rgba(255, 215, 0, 0.2);
+    transform: scale(1.1);
+}
+
+.map-size-control .size-btn i {
+    font-size: 14px;
+}
+
+/* تنسيق خاص لأزرار الأعلى والأسفل */
+.top-control {
+    margin-top: 60px !important;
+}
+
+.bottom-control {
+    margin-bottom: 60px !important;
+}
+
+/* تحسين مظهر عند التفاعل */
+.map-size-control .size-btn:active {
+    transform: scale(0.95);
+}
+
+/* تأثير توهج عند التحويم */
+.map-size-control .size-btn:hover {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+/* تحسين المظهر على الشاشات الصغيرة */
+@media screen and (max-width: 768px) {
+    .map-size-control .size-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .map-size-control .size-btn i {
+        font-size: 12px;
+    }
+}
     </style>
 </head>
 <body>
