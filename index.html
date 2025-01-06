@@ -694,10 +694,34 @@
     /* المسافة بين شريط التايتل والخريطة */
 }
 
+
+
+#map {
+    height: var(--map-height);
+    /* ارتفاع الخريطة */
+    min-height: var(--map-min-height);
+    /* الحد الأدنى للارتفاع */
+    width: 100%;
+    /* عرض الخريطة */
+    border-radius: var(--map-border-radius);
+    /* تقويس الحواف */
+    margin: var(--map-margin-top) auto var(--map-margin-bottom);
+    /* المسافات حول الخريطة */
+    box-shadow: var(--map-shadow);
+    /* الظل */
+    border: 1px solid var(--secondary-color);
+    /* الحدود */
+    z-index: 1;
+    position: relative;
+    background: linear-gradient(135deg, #0e7583, #80deea);
+    /* تدرج الخلفية */
+}
 /* تحديث الخريطة */
 /* تحسين مظهر حاوية الخريطة */
 #map {
-    height: 50vh;
+    height: var(--map-height);
+    min-height: var(--map-min-height);
+
     width: 100%;
     border: 2px solid #FFD700;
     border-radius: 20px;
