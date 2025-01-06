@@ -4199,6 +4199,136 @@ body {
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
+/* تحسين المسافات في التطبيق */
+
+/* شريط العنوان */
+.app-header {
+    background-color: #1a1a1a;
+    height: 50px;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    border-bottom: 2px solid #FFD700;
+}
+
+/* المحتوى الرئيسي */
+.container {
+    padding-top: 70px; /* مسافة أعلى من شريط العنوان */
+}
+
+/* حاوية الخريطة */
+#map {
+    margin-top: 20px; /* مسافة من العناصر العلوية */
+    height: 50vh;
+    width: 100%;
+    border: 2px solid #FFD700;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* تحسين المسافات في شريط الفلتر */
+.location-filter {
+    margin: 15px 0; /* مسافة عمودية */
+    padding: 10px;
+    background-color: rgba(26, 26, 26, 0.9);
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* شريط الأدوات */
+.tools {
+    display: flex;
+    gap: 15px; /* مسافة بين الأيقونات */
+    align-items: center;
+    height: 100%;
+}
+
+.tools .nav-link {
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.tools .nav-link:hover {
+    background-color: rgba(255, 215, 0, 0.1);
+}
+
+/* اللوجو وعنوان التطبيق */
+.app-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #FFD700;
+    text-decoration: none;
+}
+
+.app-logo i {
+    font-size: 1.5rem;
+}
+
+/* تحسين التجاوب مع الشاشات المختلفة */
+@media (max-width: 768px) {
+    .container {
+        padding-top: 60px;
+    }
+
+    .app-header {
+        height: 45px;
+    }
+
+    #map {
+        margin-top: 15px;
+    }
+
+    .location-filter {
+        margin: 10px 0;
+    }
+
+    .tools {
+        gap: 10px;
+    }
+
+    .tools .nav-link {
+        padding: 6px 10px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        padding-top: 80px;
+    }
+
+    #map {
+        margin-top: 25px;
+    }
+}
+
+/* انيميشن سلس للمسافات */
+.container, #map, .location-filter {
+    transition: margin 0.3s ease, padding 0.3s ease;
+}
+
+/* تحسين قراءة العناصر */
+.leaflet-control-container {
+    margin-top: 15px; /* مسافة من أعلى الخريطة */
+}
+
+/* إضافة مؤشر تحميل الخريطة */
+.map-loading-container {
+    margin: 20px 0;
+    text-align: center;
+    color: #FFD700;
+}
     </style>
 </head>
 <body>
