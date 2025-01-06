@@ -695,25 +695,176 @@
 }
 
 /* تحديث الخريطة */
+/* تحسين مظهر حاوية الخريطة */
 #map {
-    height: var(--map-height);
-    /* ارتفاع الخريطة */
-    min-height: var(--map-min-height);
-    /* الحد الأدنى للارتفاع */
+    height: 50vh;
     width: 100%;
-    /* عرض الخريطة */
-    border-radius: var(--map-border-radius);
-    /* تقويس الحواف */
-    margin: var(--map-margin-top) auto var(--map-margin-bottom);
-    /* المسافات حول الخريطة */
-    box-shadow: var(--map-shadow);
-    /* الظل */
-    border: 1px solid var(--secondary-color);
-    /* الحدود */
-    z-index: 1;
+    border: 2px solid #FFD700;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    margin: 20px 0;
     position: relative;
-    background: linear-gradient(135deg, #0e7583, #80deea);
-    /* تدرج الخلفية */
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+}
+
+/* إضافة تأثير شبه شفاف قبل تحميل الخريطة */
+#map::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* تحسين مظهر عناصر التحكم بالخريطة */
+.leaflet-control-container {
+    font-family: 'Cairo', sans-serif;
+}
+
+/* تحسين أزرار التحكم بالتكبير/التصغير */
+.leaflet-bar {
+    border: none !important;
+    margin: 10px !important;
+}
+
+.leaflet-bar a {
+    background: rgba(0, 0, 0, 0.8) !important;
+    color: #FFD700 !important;
+    border: 2px solid #FFD700 !important;
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    transition: all 0.3s ease !important;
+}
+
+.leaflet-bar a:hover {
+    background: rgba(255, 215, 0, 0.2) !important;
+    color: #FFFFFF !important;
+}
+
+/* تحسين مظهر التحكم بالطبقات */
+.leaflet-control-layers {
+    border: 2px solid #FFD700 !important;
+    border-radius: 15px !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    padding: 15px !important;
+    backdrop-filter: blur(5px);
+}
+
+.leaflet-control-layers label {
+    margin: 8px 0 !important;
+    color: #FFFFFF !important;
+}
+
+/* تحسين مظهر علامات الخريطة */
+.leaflet-marker-icon {
+    transition: transform 0.3s ease;
+}
+
+.leaflet-marker-icon:hover {
+    transform: scale(1.1);
+}
+
+/* تحسين النوافذ المنبثقة */
+.leaflet-popup-content-wrapper {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #FFFFFF !important;
+    border: 2px solid #FFD700;
+    border-radius: 15px !important;
+    backdrop-filter: blur(10px);
+}
+
+.leaflet-popup-tip {
+    background: #FFD700 !important;
+}
+
+.leaflet-popup-close-button {
+    color: #FFD700 !important;
+    font-size: 20px !important;
+    padding: 5px !important;
+}
+
+/* تحسين مقياس الخريطة */
+.leaflet-control-scale {
+    background: rgba(0, 0, 0, 0.8) !important;
+    padding: 5px 10px !important;
+    border-radius: 10px !important;
+    border: 1px solid #FFD700 !important;
+    color: #FFFFFF !important;
+}
+
+/* تحسين مظهر التحميل */
+.map-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid #FFD700;
+    color: #FFFFFF;
+    display: none;
+}
+
+/* تحسين حالة التحميل للطبقات */
+.leaflet-tile-loading {
+    animation: tileLoadingPulse 1s infinite;
+}
+
+@keyframes tileLoadingPulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.6; }
+}
+
+/* تحسين مظهر الحدود بين الطبقات */
+.leaflet-tile-container img {
+    border: 0.5px solid rgba(255, 215, 0, 0.1);
+}
+
+/* تحسين مظهر الخريطة عند التفاعل */
+#map.is-dragging {
+    cursor: grabbing;
+}
+
+/* تحسين مظهر النص على الخريطة */
+.leaflet-tooltip {
+    background: rgba(0, 0, 0, 0.8) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #FFD700 !important;
+    border-radius: 10px !important;
+    padding: 8px 12px !important;
+}
+
+/* إضافة تأثيرات تفاعلية عند التحريك */
+@media (hover: hover) {
+    #map:hover {
+        box-shadow: 0 6px 25px rgba(255, 215, 0, 0.2);
+    }
+}
+
+/* تحسين التجاوب مع الشاشات المختلفة */
+@media screen and (max-width: 768px) {
+    #map {
+        height: 40vh;
+    }
+
+    .leaflet-control-layers {
+        max-width: 90vw;
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    #map {
+        height: 60vh;
+    }
 }
 
 /* المسافة بين الخريطة والعناصر الأخرى */
@@ -3851,13 +4002,18 @@ body {
     border: 1px solid #FFD700;
 }
 
-/* أنماط حاوية الخريطة */
+
+
 #map {
+    height: 50vh;
+    width: 100%;
     border: 2px solid #FFD700;
-    border-radius: 10px;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    margin: 20px 0;
+    position: relative;
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
 }
 
 #map:hover {
