@@ -3824,6 +3824,33 @@ body {
     font-size: 0.9rem;
 }
 
+.location-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.location-header i {
+    color: #FFD700;
+    font-size: 1.2rem;
+}
+
+.user-marker-container i {
+    font-size: 24px;
+    color: #FFD700;
+    z-index: 2;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+
+.leaflet-popup-tip {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border: 1px solid #FFD700;
+}
+
 /* أنماط حاوية الخريطة */
 #map {
     border: 2px solid #FFD700;
@@ -5396,31 +5423,57 @@ function initMap() {
 
     // تعريف طبقات الخريطة المختلفة
     const layers = {
+        // خريطة الشوارع الأساسية
         street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
         }),
+
+        // خريطة القمر الصناعي من ESRI
         satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri'
+            attribution: '© Esri',
+            maxZoom: 19
         }),
-        terrain: L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg', {
-            attribution: '© Stamen Design'
+
+        // خريطة التضاريس من ESRI
+        terrain: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri',
+            maxZoom: 19
         }),
-        dark: L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png', {
-            attribution: '© CartoDB'
+
+        // خريطة OpenTopoMap للتضاريس (بديل)
+        topoMap: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenTopoMap',
+            maxZoom: 17
+        }),
+
+        // خريطة ليلية من CartoDB
+        dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© CartoDB',
+            maxZoom: 19
+        }),
+
+        // خريطة Thunderforest Outdoors (تتطلب API key)
+        outdoors: L.tileLayer('https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=YOUR_API_KEY', {
+            attribution: '© Thunderforest',
+            maxZoom: 19
         })
     };
 
     // إضافة الطبقة الافتراضية
     layers.street.addTo(map);
 
-    // إضافة زر التحكم بالطبقات
+    // إضافة زر التحكم بالطبقات مع خيارات متعددة
     L.control.layers({
         "خريطة الشوارع": layers.street,
         "قمر صناعي": layers.satellite,
         "تضاريس": layers.terrain,
-        "مظلم": layers.dark
+        "خريطة طبوغرافية": layers.topoMap,
+        "خريطة ليلية": layers.dark
     }, null, {
-        position: 'topleft'
+        position: 'topleft',
+        collapsed: true,
+        sortLayers: false
     }).addTo(map);
 
     // إضافة زر موقع المستخدم مع تصميم محسن
@@ -5443,9 +5496,23 @@ function initMap() {
         zoomOutTitle: 'تصغير'
     }).addTo(map);
 
+    // إضافة مقياس الخريطة
+    L.control.scale({
+        position: 'bottomleft',
+        metric: true,
+        imperial: false,
+        maxWidth: 200
+    }).addTo(map);
+
     // إضافة طبقات الخريطة
     markerLayer = L.layerGroup().addTo(map);
     routeLayer = L.layerGroup().addTo(map);
+
+    // إضافة مستمع لتغيير الطبقة
+    map.on('baselayerchange', function(e) {
+        console.log('تم تغيير نوع الخريطة إلى:', e.name);
+        // يمكنك إضافة أي منطق إضافي هنا عند تغيير نوع الخريطة
+    });
 }
 
 // دالة تحديد موقع المستخدم محسنة
@@ -5467,33 +5534,59 @@ async function getCurrentLocation() {
 
         const { latitude: userLat, longitude: userLng } = position.coords;
 
-        // تحديث موقع المستخدم على الخريطة مع تأثير حركي
+        // الحصول على العنوان التقريبي باستخدام Nominatim
+        const addressResponse = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${userLat}&lon=${userLng}&format=json&accept-language=ar`
+        );
+        const addressData = await addressResponse.json();
+
+        // إنشاء أيقونة محسنة للموقع
+        const userIcon = L.divIcon({
+            html: `
+                <div class="user-marker-container">
+                    <i class="fas fa-user-circle"></i>
+                    <div class="pulse"></div>
+                </div>
+            `,
+            className: 'user-marker',
+            iconSize: [40, 40]
+        });
+        
+        // إنشاء محتوى النافذة المنبثقة المحسن
+        const popupContent = `
+            <div class="location-popup">
+                <div class="location-header">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h6>موقعك الحالي</h6>
+                </div>
+                <div class="location-details">
+                    <div class="location-address">
+                        <i class="fas fa-map"></i>
+                        <span>${addressData.display_name || 'العنوان غير متوفر'}</span>
+                    </div>
+                    <div class="location-accuracy">
+                        <i class="fas fa-crosshairs"></i>
+                        <span>دقة تحديد الموقع: ${Math.round(position.coords.accuracy)} متر</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // تحديث أو إنشاء علامة الموقع
         if (userMarker) {
             userMarker.setLatLng([userLat, userLng]);
+            userMarker.setPopupContent(popupContent);
         } else {
-            const userIcon = L.divIcon({
-                html: `
-                    <div class="user-marker-container">
-                        <i class="fas fa-user-circle"></i>
-                        <div class="pulse"></div>
-                    </div>
-                `,
-                className: 'user-marker',
-                iconSize: [40, 40]
-            });
-            
-            userMarker = L.marker([userLat, userLng], {icon: userIcon})
-                .bindPopup(`
-                    <div class="location-popup">
-                        <h6>موقعك الحالي</h6>
-                        <p>${userLat.toFixed(6)}, ${userLng.toFixed(6)}</p>
-                    </div>
-                `)
-                .addTo(map);
+            userMarker = L.marker([userLat, userLng], {
+                icon: userIcon,
+                zIndexOffset: 1000
+            })
+            .bindPopup(popupContent)
+            .addTo(map);
         }
 
         // تحريك الخريطة بتأثير حركي
-        map.flyTo([userLat, userLng], 15, {
+        map.flyTo([userLat, userLng], 16, {
             duration: 1.5,
             easeLinearity: 0.25
         });
