@@ -61,13 +61,14 @@
     
     <!-- App Scripts -->
     <script src="firebase-config.js"></script>
-    
+    <script src="script.js"></script>
 
 
     <!-- Application CSS -->
     <style>
     
     
+       
     
   /* نظام الألوان الأساسي */
 :root {
@@ -4235,79 +4236,6 @@ body {
     padding-left: 0;
     padding-right: 0;
 }
-
-.driver-marker-container {
-    position: relative;
-    width: 40px;
-    height: 40px;
-}
-
-.driver-marker-image {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 2px solid #FFD700;
-    object-fit: cover;
-}
-
-.driver-distance-badge {
-    position: absolute;
-    bottom: -10px;
-    right: -5px;
-    background: #FFD700;
-    color: #000;
-    padding: 2px 5px;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.driver-popup {
-    min-width: 200px;
-    padding: 10px;
-}
-
-.driver-popup-header {
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.driver-popup-image {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    border: 3px solid #FFD700;
-    margin-bottom: 5px;
-}
-
-.driver-popup-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.driver-popup-button {
-    background: #FFD700;
-    color: #333;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
-    width: 100%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-.driver-popup-button:hover {
-    background: #ccac00;
-}
     </style>
 </head>
 <body>
@@ -5257,8 +5185,8 @@ async initialize() {
        // يجب تحديث جميع المسارات لتتضمن /Al-Pasha/
 // مثلاً في ملف firebase-messaging-sw.js
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('https://alqasimmall.github.io/Pasha-Taxi-/firebase-messaging-sw.js', {
-        scope: 'https://alqasimmall.github.io/Pasha-Taxi-/firebase-messaging-sw.js'
+    navigator.serviceWorker.register('./firebase-messaging-sw.js', {
+        scope: './'
     })
 }
 
@@ -5840,397 +5768,55 @@ notificationHandler.initialize().catch(console.error);
     }
 
 
-// تحسين دالة initMap لدعم تبديل الطبقات
-function initMap() {
-    const defaultLocation = [33.3152, 44.3661]; // بغداد
-    
-    map = L.map('map', {
-        center: defaultLocation,
-        zoom: 8,
-        zoomControl: false
+    function initMap() {
+        // الإحداثيات الافتراضية
+        const defaultLocation = [33.3152, 44.3661];
 
-        
-    });
-
-    // تعريف طبقات الخريطة المختلفة
-    const layers = {
-        // خريطة الشوارع الأساسية
-        street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // إنشاء الخريطة مع خيارات التخصيص
+        map = L.map('map', {
+            center: defaultLocation,
+            zoom: 8,
+            zoomControl: false, // إخفاء التحكم الافتراضي بالتكبير/التصغير
+            attributionControl: false, // إخفاء شريط النسب
+        });
+        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
-        }),
+        }).addTo(map);
+        // إضافة زر تكبير/تصغير مخصص
+        L.control.zoom({
+            position: 'topright',
+        }).addTo(map);
 
-        // خريطة القمر الصناعي من ESRI
-        satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri',
-            maxZoom: 19
-        }),
+        // إضافة زر شريط النسبة المخصص
+        L.control.attribution({
+            position: 'bottomleft',
+            prefix: '<a href="https://leafletjs.com" target="_blank">Leaflet</a>',
+        }).addTo(map);
 
-        // خريطة التضاريس من ESRI
-        terrain: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri',
-            maxZoom: 19
-        }),
+        // إضافة طبقة علامات مخصصة
+        markerLayer = L.layerGroup().addTo(map);
 
-        // خريطة OpenTopoMap للتضاريس (بديل)
-        topoMap: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenTopoMap',
-            maxZoom: 17
-        }),
+        // تمكين الموقع الجغرافي
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(
+                updateUserLocation,
+                handleLocationError,
+                { enableHighAccuracy: true }
+            );
+        }
 
-        // خريطة ليلية من CartoDB
-        dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© CartoDB',
-            maxZoom: 19
-        }),
-
-        // خريطة Thunderforest Outdoors (تتطلب API key)
-        outdoors: L.tileLayer('https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=YOUR_API_KEY', {
-            attribution: '© Thunderforest',
-            maxZoom: 19
-        })
-    };
-
-    // إضافة الطبقة الافتراضية
-    layers.street.addTo(map);
-
-    // إضافة زر التحكم بالطبقات مع خيارات متعددة
-    L.control.layers({
-        "خريطة الشوارع": layers.street,
-        "قمر صناعي": layers.satellite,
-        "تضاريس": layers.terrain,
-        "خريطة طبوغرافية": layers.topoMap,
-        "خريطة ليلية": layers.dark
-    }, null, {
-        position: 'topleft',
-        collapsed: true,
-        sortLayers: false
-    }).addTo(map);
-
-    // إضافة زر موقع المستخدم مع تصميم محسن
-    const locationButton = L.control({position: 'bottomright'});
-    locationButton.onAdd = function() {
-        const btn = L.DomUtil.create('button', 'user-location-btn');
-        btn.innerHTML = '<i class="fas fa-location-arrow"></i>';
-        btn.title = 'تحديد موقعك الحالي';
-        btn.onclick = function() {
-            getCurrentLocation();
+        // إضافة أزرار التبديل بين الطبقات
+        const layersControl = {
+            "خريطة الشوارع": tileLayer,
+            "خريطة القمر الصناعي": L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: '© Google',
+            }),
         };
-        return btn;
-    };
-    locationButton.addTo(map);
 
-    // إضافة زر التكبير/التصغير
-    L.control.zoom({
-        position: 'bottomright',
-        zoomInTitle: 'تكبير',
-        zoomOutTitle: 'تصغير'
-    }).addTo(map);
-
-    // إضافة مقياس الخريطة
-    L.control.scale({
-        position: 'bottomleft',
-        metric: true,
-        imperial: false,
-        maxWidth: 200
-    }).addTo(map);
-
-    // إضافة طبقات الخريطة
-    markerLayer = L.layerGroup().addTo(map);
-    routeLayer = L.layerGroup().addTo(map);
-
-    // إضافة مستمع لتغيير الطبقة
-    map.on('baselayerchange', function(e) {
-        console.log('تم تغيير نوع الخريطة إلى:', e.name);
-        // يمكنك إضافة أي منطق إضافي هنا عند تغيير نوع الخريطة
-    });
-}
-
-// دالة تحديد موقع المستخدم محسنة
-async function getCurrentLocation() {
-    if (!navigator.geolocation) {
-        showToast('خدمة تحديد الموقع غير متوفرة في متصفحك', 'error');
-        return;
+        L.control.layers(layersControl).addTo(map);
     }
 
-    try {
-        showLoading();
-        const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            });
-        });
-
-        const { latitude: userLat, longitude: userLng } = position.coords;
-
-        // الحصول على العنوان التقريبي باستخدام Nominatim
-        const addressResponse = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${userLat}&lon=${userLng}&format=json&accept-language=ar`
-        );
-        const addressData = await addressResponse.json();
-
-        // إنشاء أيقونة محسنة للموقع
-        const userIcon = L.divIcon({
-            html: `
-                <div class="user-marker-container">
-                    <i class="fas fa-user-circle"></i>
-                    <div class="pulse"></div>
-                </div>
-            `,
-            className: 'user-marker',
-            iconSize: [40, 40]
-        });
-        
-        // إنشاء محتوى النافذة المنبثقة المحسن
-        const popupContent = `
-            <div class="location-popup">
-                <div class="location-header">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <h6>موقعك الحالي</h6>
-                </div>
-                <div class="location-details">
-                    <div class="location-address">
-                        <i class="fas fa-map"></i>
-                        <span>${addressData.display_name || 'العنوان غير متوفر'}</span>
-                    </div>
-                    <div class="location-accuracy">
-                        <i class="fas fa-crosshairs"></i>
-                        <span>دقة تحديد الموقع: ${Math.round(position.coords.accuracy)} متر</span>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // تحديث أو إنشاء علامة الموقع
-        if (userMarker) {
-            userMarker.setLatLng([userLat, userLng]);
-            userMarker.setPopupContent(popupContent);
-        } else {
-            userMarker = L.marker([userLat, userLng], {
-                icon: userIcon,
-                zIndexOffset: 1000
-            })
-            .bindPopup(popupContent)
-            .addTo(map);
-        }
-
-        // تحريك الخريطة بتأثير حركي
-        map.flyTo([userLat, userLng], 16, {
-            duration: 1.5,
-            easeLinearity: 0.25
-        });
-
-        hideLoading();
-        showToast('تم تحديد موقعك بنجاح', 'success');
-
-        // تحديث الإحداثيات في النموذج إذا كان موجوداً
-        const latInput = document.getElementById('driverLatitude');
-        const lngInput = document.getElementById('driverLongitude');
-        if (latInput && lngInput) {
-            latInput.value = userLat;
-            lngInput.value = userLng;
-        }
-
-        return { lat: userLat, lng: userLng };
-    } catch (error) {
-        hideLoading();
-        handleLocationError(error);
-        return null;
-    }
-}
-
-// دالة رسم المسار محدثة لاستخدام OSRM
-async function drawRoute(fromLocation, toLocation) {
-    try {
-        routeLayer.clearLayers();
-
-        const start = `${fromLocation.lng},${fromLocation.lat}`;
-        const end = `${toLocation.lng},${toLocation.lat}`;
-        
-        const response = await fetch(
-            `https://router.project-osrm.org/route/v1/driving/${start};${end}?overview=full&geometries=geojson`
-        );
-        
-        const data = await response.json();
-
-        if (data.code === 'Ok' && data.routes && data.routes[0]) {
-            const route = data.routes[0];
-            const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
-            
-            // رسم المسار مع تأثيرات حركية
-            const routeLine = L.polyline(coordinates, {
-                color: '#FFD700',
-                weight: 5,
-                opacity: 0.8,
-                lineCap: 'round',
-                lineJoin: 'round',
-                className: 'animated-route'
-            }).addTo(routeLayer);
-
-            // إضافة علامات البداية والنهاية مع تصميم محسن
-            const markers = {
-                start: {
-                    latlng: [fromLocation.lat, fromLocation.lng],
-                    icon: createMarkerIcon('start'),
-                    popup: createPopupContent('نقطة الانطلاق', route.duration, 0)
-                },
-                end: {
-                    latlng: [toLocation.lat, toLocation.lng],
-                    icon: createMarkerIcon('end'),
-                    popup: createPopupContent('نقطة الوصول', route.duration, route.distance)
-                }
-            };
-
-            // إضافة العلامات للخريطة
-            Object.values(markers).forEach(marker => {
-                L.marker(marker.latlng, { icon: marker.icon })
-                    .bindPopup(marker.popup)
-                    .addTo(routeLayer);
-            });
-
-            // تحريك الخريطة لإظهار المسار كاملاً
-            map.fitBounds(routeLine.getBounds(), {
-                padding: [50, 50],
-                animate: true,
-                duration: 1
-            });
-
-            // إضافة معلومات الرحلة
-            addRouteInfo({
-                distance: route.distance,
-                duration: route.duration,
-                startLocation: fromLocation,
-                endLocation: toLocation
-            });
-
-            return {
-                distance: route.distance,
-                duration: route.duration,
-                coordinates: coordinates
-            };
-        }
-        
-        throw new Error('لم يتم العثور على مسار');
-    } catch (error) {
-        console.error('Error drawing route:', error);
-        showToast('حدث خطأ في رسم المسار', 'error');
-        return null;
-    }
-}
-
-// دالة إنشاء أيقونة العلامة
-function createMarkerIcon(type) {
-    const colors = {
-        start: '#28a745',
-        end: '#dc3545'
-    };
-
-    const icons = {
-        start: 'map-marker-alt',
-        end: 'flag-checkered'
-    };
-
-    return L.divIcon({
-        html: `
-            <div class="marker-icon ${type}-marker">
-                <i class="fas fa-${icons[type]}" style="color: ${colors[type]}"></i>
-            </div>
-        `,
-        className: '',
-        iconSize: [40, 40],
-        iconAnchor: [20, 40]
-    });
-}
-
-// دالة إنشاء محتوى النافذة المنبثقة
-function createPopupContent(title, duration, distance) {
-    return `
-        <div class="route-popup">
-            <h6>${title}</h6>
-            <p><i class="fas fa-clock"></i> ${formatDuration(duration)}</p>
-            ${distance ? `<p><i class="fas fa-road"></i> ${formatDistance(distance)}</p>` : ''}
-        </div>
-    `;
-}
-
-// دالة إضافة معلومات المسار
-function addRouteInfo(info) {
-    const container = document.createElement('div');
-    container.className = 'route-info-container';
-    container.innerHTML = `
-        <div class="route-info">
-            <h6>معلومات الرحلة</h6>
-            <div class="info-item">
-                <i class="fas fa-road"></i>
-                <span>المسافة: ${formatDistance(info.distance)}</span>
-            </div>
-            <div class="info-item">
-                <i class="fas fa-clock"></i>
-                <span>الوقت المتوقع: ${formatDuration(info.duration)}</span>
-            </div>
-            <div class="info-item">
-                <i class="fas fa-money-bill-wave"></i>
-                <span>التكلفة التقريبية: ${calculateFare(info.distance)} د.ع</span>
-            </div>
-        </div>
-    `;
-
-    // إضافة المعلومات للخريطة
-    const control = L.control({ position: 'bottomleft' });
-    control.onAdd = () => container;
-    control.addTo(map);
-
-
-
-    
-}
-
-// دوال مساعدة لتنسيق المسافة والوقت
-function formatDistance(meters) {
-    return meters >= 1000 
-        ? `${(meters / 1000).toFixed(1)} كم`
-        : `${Math.round(meters)} متر`;
-}
-
-function formatDuration(seconds) {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    
-    if (hours > 0) {
-        return `${hours} ساعة ${minutes} دقيقة`;
-    }
-    return `${minutes} دقيقة`;
-}
-
-// دالة حساب التكلفة التقريبية
-function calculateFare(distance) {
-    const baseRate = 5000; // السعر الأساسي
-    const ratePerKm = 1000; // السعر لكل كيلومتر
-    const distanceInKm = distance / 1000;
-    
-    return Math.round(baseRate + (distanceInKm * ratePerKm)).toLocaleString();
-}
-
-// دالة معالجة أخطاء تحديد الموقع
-function handleLocationError(error) {
-    let message = 'حدث خطأ في تحديد الموقع';
-    
-    switch (error.code) {
-        case error.PERMISSION_DENIED:
-            message = 'تم رفض الوصول إلى خدمة تحديد الموقع';
-            break;
-        case error.POSITION_UNAVAILABLE:
-            message = 'معلومات الموقع غير متوفرة';
-            break;
-        case error.TIMEOUT:
-            message = 'انتهت مهلة طلب تحديد الموقع';
-            break;
-    }
-    
-    showToast(message, 'error');
-}
     function updateUserLocation(position) {
         const newLocation = {
             lat: position.coords.latitude,
@@ -6261,107 +5847,6 @@ function handleLocationError(error) {
 
             // تحميل السائقين إذا كان الموقع جديدًا
             loadDrivers();
-        }
-    }
-
-    async function updateUserLocation(position) {
-        try {
-            const newLocation = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                accuracy: position.coords.accuracy
-            };
-    
-            // تحقق من التغير الكبير في الموقع
-            const hasSignificantChange = !userLocation || 
-                Math.abs(newLocation.lat - userLocation.lat) > 0.0001 || 
-                Math.abs(newLocation.lng - userLocation.lng) > 0.0001;
-    
-            if (hasSignificantChange) {
-                userLocation = newLocation;
-    
-                // تحديث أيقونة المستخدم مع تأثيرات حركية
-                const userIcon = L.divIcon({
-                    html: `
-                        <div class="user-location-marker">
-                            <div class="user-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="accuracy-circle" style="width: ${newLocation.accuracy}px; height: ${newLocation.accuracy}px;"></div>
-                            <div class="pulse-circle"></div>
-                        </div>
-                    `,
-                    className: 'user-location-icon',
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 20]
-                });
-    
-                // محاولة الحصول على العنوان التقريبي
-                let addressInfo = 'جاري تحديد العنوان...';
-                try {
-                    const response = await fetch(
-                        `https://nominatim.openstreetmap.org/reverse?lat=${newLocation.lat}&lon=${newLocation.lng}&format=json&accept-language=ar`
-                    );
-                    const data = await response.json();
-                    addressInfo = data.display_name || 'العنوان غير متوفر';
-                } catch (error) {
-                    console.error('Error fetching address:', error);
-                    addressInfo = 'تعذر تحديد العنوان';
-                }
-    
-                // إنشاء محتوى النافذة المنبثقة
-                const popupContent = `
-                    <div class="user-location-popup">
-                        <div class="location-header">
-                            <i class="fas fa-location-arrow"></i>
-                            <h6>موقعك الحالي</h6>
-                        </div>
-                        <div class="location-info">
-                            <div class="info-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>${addressInfo}</span>
-                            </div>
-                            <div class="info-item">
-                                <i class="fas fa-compass"></i>
-                                <span>دقة التحديد: ${Math.round(newLocation.accuracy)} متر</span>
-                            </div>
-                            <div class="info-item">
-                                <i class="fas fa-clock"></i>
-                                <span>آخر تحديث: ${new Date().toLocaleTimeString('ar-IQ')}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-    
-                // تحديث أو إنشاء علامة الموقع
-                if (!userMarker) {
-                    userMarker = L.marker([userLocation.lat, userLocation.lng], {
-                        icon: userIcon,
-                        zIndexOffset: 1000
-                    })
-                    .bindPopup(popupContent)
-                    .addTo(map);
-                } else {
-                    userMarker.setIcon(userIcon);
-                    userMarker.setLatLng([userLocation.lat, userLocation.lng]);
-                    userMarker.getPopup().setContent(popupContent);
-                }
-    
-                // تحريك الخريطة بتأثير سلس
-                map.flyTo([userLocation.lat, userLocation.lng], 16, {
-                    duration: 1.5,
-                    easeLinearity: 0.25
-                });
-    
-                // تحديث قائمة السائقين
-                await loadDrivers();
-    
-                // عرض إشعار نجاح التحديث
-                showToast('تم تحديث موقعك بنجاح', 'success');
-            }
-        } catch (error) {
-            console.error('Error updating location:', error);
-            showToast('حدث خطأ في تحديث الموقع', 'error');
         }
     }
 
@@ -8974,205 +8459,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-
-// تحديث موقع المستخدم وتحميل السائقين
-async function initializeLocationAndDrivers() {
-    try {
-        // أولاً نحصل على موقع المستخدم
-        const position = await getCurrentLocation();
-        if (position) {
-            userLocation = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-            };
-            // بعد الحصول على الموقع، نقوم بتحميل السائقين
-            loadDrivers('all');
-        }
-    } catch (error) {
-        console.error('Error initializing location:', error);
-        // حتى لو فشل تحديد الموقع، نقوم بتحميل السائقين
-        loadDrivers('all');
-    }
-}
-
-// تحديث دالة getCurrentLocation لتعيد Promise
-function getCurrentLocation() {
-    return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-            showToast('متصفحك لا يدعم تحديد الموقع', 'error');
-            reject(new Error('Geolocation not supported'));
-            return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                resolve(position);
-            },
-            (error) => {
-                handleLocationError(error);
-                reject(error);
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            }
-        );
-    });
-}
-
-function loadDrivers(location = 'all') {
-    if (isLoadingDrivers) return;
-    isLoadingDrivers = true;
-
-    showLoading();
-    const driversRef = database.ref('drivers');
-
-    driversRef.once('value')
-        .then((snapshot) => {
-            const driversGrid = document.getElementById('driversGrid');
-            driversGrid.innerHTML = '';
-            markerLayer.clearLayers();
-
-            let drivers = [];
-            snapshot.forEach((childSnapshot) => {
-                const driver = childSnapshot.val();
-                driver.id = childSnapshot.key;
-                if (location === 'all' || driver.location === location) {
-                    drivers.push(driver);
-                }
-            });
-
-            // ترتيب السائقين حسب المسافة إذا كان موقع المستخدم متوفراً
-            if (userLocation) {
-                drivers.sort((a, b) => {
-                    const distanceA = calculateDistance(userLocation, a.coordinates) || Infinity;
-                    const distanceB = calculateDistance(userLocation, b.coordinates) || Infinity;
-                    return distanceA - distanceB;
-                });
-            }
-
-            // عرض السائقين
-            drivers.forEach(driver => {
-                driversGrid.innerHTML += createDriverCard(driver, driver.id);
-                addDriverMarker(driver, driver.id);
-            });
-
-            hideLoading();
-        })
-        .catch((error) => {
-            console.error('Error loading drivers:', error);
-            showToast('حدث خطأ في تحميل بيانات السائقين', 'error');
-        })
-        .finally(() => {
-            isLoadingDrivers = false;
-        });
-}
-
-function addDriverMarker(driver, driverId) {
-    if (driver.coordinates) {
-        const { lat, lng } = driver.coordinates;
-        let distanceText = '--';
-
-        if (userLocation) {
-            const distance = calculateDistance(userLocation, driver.coordinates);
-            distanceText = formatDistance(distance);
-        }
-
-        const driverMarker = L.marker([lat, lng], {
-            icon: L.divIcon({
-                html: `<div class="driver-marker-container">
-                         <img src="${driver.imageUrl}" 
-                              alt="${driver.name}" 
-                              class="driver-marker-image">
-                         <span class="driver-distance-badge">${distanceText}</span>
-                      </div>`,
-                className: 'driver-marker',
-                iconSize: [40, 40],
-            }),
-        }).addTo(markerLayer);
-
-        driverMarker.bindPopup(createDriverPopup(driver, driverId, distanceText));
-    }
-}
-
-function createDriverPopup(driver, driverId, distanceText) {
-    return `
-        <div class="driver-popup">
-            <div class="driver-popup-header">
-                <img src="${driver.imageUrl || 'default-avatar.png'}" 
-                     alt="${driver.name}" 
-                     class="driver-popup-image">
-                <h6 class="driver-popup-name">${driver.name}</h6>
-            </div>
-            
-            <div class="driver-popup-stats">
-                <div>
-                    <i class="fas fa-star"></i>
-                    ${driver.rating ? driver.rating.toFixed(1) : '5.0'}
-                </div>
-                <div>
-                    <i class="fas fa-route"></i>
-                    ${driver.trips || 0}
-                </div>
-                <div>
-                    <i class="fas fa-map-marker-alt"></i>
-                    ${distanceText}
-                </div>
-            </div>
-
-            <div class="driver-popup-info">
-                <p>🚗 ${driver.carType} - ${driver.carModel}</p>
-                <p>📍 ${driver.location}</p>
-            </div>
-
-            <button onclick="openChatWindow('${driverId}')" 
-                    class="driver-popup-button">
-                <i class="fas fa-comment"></i>
-                مراسلة السائق
-            </button>
-        </div>
-    `;
-}
-
-// تحديث موقع المستخدم وإعادة حساب المسافات
-function updateUserLocationAndDistances(position) {
-    userLocation = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-    };
-    
-    // إعادة تحميل السائقين لتحديث المسافات
-    loadDrivers('all');
-}
-
-// إضافة مراقب للموقع
-function startLocationTracking() {
-    if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(
-            updateUserLocationAndDistances,
-            handleLocationError,
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            }
-        );
-    }
-}
-
-// تنفيذ عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', () => {
-    initializeLocationAndDrivers();
-    startLocationTracking();
-});
-
         </script>
     </main>
     <!-- ربط ملف الجافا سكريبت -->
-    
-    
+    <script src="app.js"></script>
+   
 </body>
 </html>
-
-1234567890-
