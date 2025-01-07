@@ -5768,7 +5768,88 @@ notificationHandler.initialize().catch(console.error);
     }
 
 
-    
+    function initMap() {
+        // الإحداثيات الافتراضية
+        const defaultLocation = [33.3152, 44.3661];
+
+        // إنشاء الخريطة مع خيارات التخصيص
+        map = L.map('map', {
+            center: defaultLocation,
+            zoom: 8,
+            zoomControl: false, // إخفاء التحكم الافتراضي بالتكبير/التصغير
+            attributionControl: false, // إخفاء شريط النسب
+        });
+        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+        }).addTo(map);
+        // إضافة زر تكبير/تصغير مخصص
+        L.control.zoom({
+            position: 'topright',
+        }).addTo(map);
+
+        // إضافة زر شريط النسبة المخصص
+        L.control.attribution({
+            position: 'bottomleft',
+            prefix: '<a href="https://leafletjs.com" target="_blank">Leaflet</a>',
+        }).addTo(map);
+
+        // إضافة طبقة علامات مخصصة
+        markerLayer = L.layerGroup().addTo(map);
+
+        // تمكين الموقع الجغرافي
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(
+                updateUserLocation,
+                handleLocationError,
+                { enableHighAccuracy: true }
+            );
+        }
+
+        // إضافة أزرار التبديل بين الطبقات
+        const layersControl = {
+            "خريطة الشوارع": tileLayer,
+            "خريطة القمر الصناعي": L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: '© Google',
+            }),
+        };
+
+        L.control.layers(layersControl).addTo(map);
+    }
+
+    function updateUserLocation(position) {
+        const newLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+        };
+
+        // تحقق إذا تغير الموقع بما يكفي لتحديث الخريطة
+        if (!userLocation || Math.abs(newLocation.lat - userLocation.lat) > 0.0001 || Math.abs(newLocation.lng - userLocation.lng) > 0.0001) {
+            userLocation = newLocation;
+
+            // تحديث علامة المستخدم فقط إذا تغير الموقع
+            const userIcon = L.divIcon({
+                html: '<i class="fas fa-user-circle fa-5x" style="color: #007bff;"></i>',
+                className: 'user-marker',
+                iconSize: [30, 30],
+            });
+
+            if (!userMarker) {
+                userMarker = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+                    .bindPopup('موقعك الحالي')
+                    .addTo(map);
+            } else {
+                userMarker.setLatLng([userLocation.lat, userLocation.lng]);
+            }
+
+            // تحديث الخريطة مرة واحدة فقط
+            map.setView([userLocation.lat, userLocation.lng], 13);
+
+            // تحميل السائقين إذا كان الموقع جديدًا
+            loadDrivers();
+        }
+    }
+
 
     // قاموس يحتوي على إحداثيات المحافظات والمناطق العراقية
     const locationCoordinates = {
