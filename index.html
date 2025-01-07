@@ -8901,6 +8901,133 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    // تحويل الإحداثيات إلى راديان
+    const R = 6371; // نصف قطر الأرض بالكيلومترات
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // المسافة بالكيلومترات
+
+    return parseFloat(distance.toFixed(1));
+}
+
+// دالة لتحديث المسافات لجميع السائقين
+function updateAllDriversDistances(userLocation) {
+    if (!userLocation) return;
+
+    database.ref('drivers').once('value')
+        .then(snapshot => {
+            snapshot.forEach(childSnapshot => {
+                const driver = childSnapshot.val();
+                if (driver.coordinates) {
+                    const distance = calculateDistance(
+                        userLocation.lat,
+                        userLocation.lng,
+                        driver.coordinates.lat,
+                        driver.coordinates.lng
+                    );
+
+                    // تحديث المسافة في واجهة المستخدم
+                    const distanceElement = document.querySelector(`[data-driver-id="${childSnapshot.key}"] .distance-value`);
+                    if (distanceElement) {
+                        distanceElement.textContent = `${distance} كم`;
+                    }
+                }
+            });
+        });
+}
+
+// تحديث المسافات كل 30 ثانية
+setInterval(() => {
+    if (userLocation) {
+        updateAllDriversDistances(userLocation);
+    }
+}, 30000);
+
+function initializeRealtimeUpdates() {
+    const driversRef = database.ref('drivers');
+    
+    driversRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+            const driver = childSnapshot.val();
+            const driverId = childSnapshot.key;
+            
+            if (driver.coordinates) {
+                updateDriverMarkerOnMap(driverId, driver.coordinates);
+                if (userLocation) {
+                    const distance = calculateDistance(
+                        userLocation.lat,
+                        userLocation.lng,
+                        driver.coordinates.lat,
+                        driver.coordinates.lng
+                    );
+                    updateDistanceDisplay(driverId, distance);
+                }
+            }
+        });
+    });
+}
+
+function updateDistanceDisplay(driverId, distance) {
+    const distanceElement = document.querySelector(`[data-driver-id="${driverId}"] .distance-value`);
+    if (distanceElement) {
+        distanceElement.textContent = `${distance} كم`;
+    }
+}
+
+function filterDriversByDistance(maxDistance) {
+    if (!userLocation) return;
+
+    database.ref('drivers').once('value')
+        .then(snapshot => {
+            const driversGrid = document.getElementById('driversGrid');
+            driversGrid.innerHTML = '';
+
+            snapshot.forEach(childSnapshot => {
+                const driver = childSnapshot.val();
+                if (driver.coordinates) {
+                    const distance = calculateDistance(
+                        userLocation.lat,
+                        userLocation.lng,
+                        driver.coordinates.lat,
+                        driver.coordinates.lng
+                    );
+
+                    if (distance <= maxDistance) {
+                        driversGrid.innerHTML += createDriverCard(driver, childSnapshot.key);
+                    }
+                }
+            });
+        });
+}
+
+// إضافة شريط تحديد المسافة
+function addDistanceFilter() {
+    const filterContainer = document.createElement('div');
+    filterContainer.className = 'distance-filter mb-3';
+    filterContainer.innerHTML = `
+        <label class="form-label">تصفية حسب المسافة (كم)</label>
+        <input type="range" class="form-range" min="1" max="50" value="10" id="distanceRange">
+        <span id="distanceValue">10 كم</span>
+    `;
+
+    document.querySelector('.location-filter').appendChild(filterContainer);
+
+    document.getElementById('distanceRange').addEventListener('input', (e) => {
+        const distance = e.target.value;
+        document.getElementById('distanceValue').textContent = distance + ' كم';
+        filterDriversByDistance(parseInt(distance));
+    });
+}
+
         </script>
     </main>
     <!-- ربط ملف الجافا سكريبت -->
