@@ -5968,14 +5968,8 @@ notificationHandler.initialize().catch(console.error);
     }
 
 
-    // تحديث دالة عرض بطاقة السائق
-function createDriverCard(driver, key) {
-    // حساب المسافة فقط إذا كان موقع المستخدم متوفراً
-    let distanceText = '';
-    if (userLocation && driver.coordinates) {
-        const distance = calculateDistance(userLocation, driver.coordinates);
-        distanceText = distance ? `<div class="distance-badge">${distance}</div>` : '';
-    }
+    function createDriverCard(driver, key) {
+        const distance = userLocation ? calculateDistance(userLocation, driver.coordinates) : null;
 
         return `
             <div class="driver-card animate__animated animate__fadeIn" style="background-color: #000000; color: #FFFFFF; border-radius: 20px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); overflow: hidden;">
@@ -6116,93 +6110,26 @@ function createDriverCard(driver, key) {
 
 
     function calculateDistance(point1, point2) {
-    // التحقق من صحة النقاط
-    if (!point1 || !point2 || 
-        !point1.lat || !point1.lng || 
-        !point2.lat || !point2.lng) {
-        return null;
-    }
+        // التحقق من صحة النقاط
+        if (!point1 || !point2 || !point1.lat || !point1.lng || !point2.lat || !point2.lng) {
+            return null;
+        }
 
-    try {
-        // تحويل الإحداثيات إلى راديان
+        const R = 6371;
+        const dLat = toRad(point2.lat - point1.lat);
+        const dLon = toRad(point2.lng - point1.lng);
         const lat1 = toRad(point1.lat);
-        const lon1 = toRad(point1.lng);
         const lat2 = toRad(point2.lat);
-        const lon2 = toRad(point2.lng);
 
-        // معادلة Haversine لحساب المسافة على سطح الكرة
-        const R = 6371; // نصف قطر الأرض بالكيلومتر
-        const dLat = lat2 - lat1;
-        const dLon = lon2 - lon1;
-
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1) * Math.cos(lat2) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        const distance = R * c;
-
-        // تحويل المسافة إلى أمتار إذا كانت أقل من 1 كم
-        return distance < 1 ? (distance * 1000).toFixed(0) + " متر" : 
-                            distance.toFixed(1) + " كم";
-    } catch (error) {
-        console.error('Error calculating distance:', error);
-        return null;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
-}
 
-// تحديث دالة تحميل السائقين
-function loadDrivers(location = 'all') {
-    if (isLoadingDrivers) return;
-    isLoadingDrivers = true;
-
-    showLoading();
-    const driversRef = database.ref('drivers');
-
-    driversRef.once('value')
-        .then((snapshot) => {
-            const driversGrid = document.getElementById('driversGrid');
-            driversGrid.innerHTML = '';
-            markerLayer.clearLayers();
-
-            let drivers = [];
-            snapshot.forEach((childSnapshot) => {
-                const driver = childSnapshot.val();
-                driver.id = childSnapshot.key;
-                if (location === 'all' || driver.location === location) {
-                    drivers.push(driver);
-                }
-            });
-
-            // ترتيب السائقين حسب المسافة إذا كان موقع المستخدم متوفراً
-            if (userLocation) {
-                drivers.sort((a, b) => {
-                    const distA = a.coordinates ? calculateDistance(userLocation, a.coordinates) : Infinity;
-                    const distB = b.coordinates ? calculateDistance(userLocation, b.coordinates) : Infinity;
-                    return distA - distB;
-                });
-            }
-
-            // عرض السائقين المرتبين
-            drivers.forEach(driver => {
-                driversGrid.innerHTML += createDriverCard(driver, driver.id);
-                addDriverMarker(driver);
-            });
-
-            hideLoading();
-            isLoadingDrivers = false;
-        })
-        .catch((error) => {
-            console.error('Error loading drivers:', error);
-            showToast('حدث خطأ في تحميل بيانات السائقين', 'error');
-            hideLoading();
-            isLoadingDrivers = false;
-        });
-}
-
-   function toRad(degrees) {
-    return degrees * Math.PI / 180;
-}
+    function toRad(degrees) {
+        return degrees * Math.PI / 180;
+    }
 
     function loadDrivers(location = 'all') {
         if (isLoadingDrivers) return;
