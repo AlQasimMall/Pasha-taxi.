@@ -6363,112 +6363,204 @@ function createMarkerIcon(type) {
     }
 
 
-    function calculateDistance(point1, point2) {
-        // التحقق من صحة النقاط
-        if (!point1 || !point2 || !point1.lat || !point1.lng || !point2.lat || !point2.lng) {
-            return null;
-        }
+    // تحسين دالة حساب المسافة
+function calculateDistance(point1, point2) {
+    // التحقق المحسن من صحة النقاط
+    if (!point1 || !point2 || !point1.lat || !point1.lng || !point2.lat || !point2.lng) {
+        console.warn('Invalid coordinates provided for distance calculation');
+        return null;
+    }
 
-        const R = 6371;
+    try {
+        const R = 6371; // نصف قطر الأرض بالكيلومترات
         const dLat = toRad(point2.lat - point1.lat);
         const dLon = toRad(point2.lng - point1.lng);
         const lat1 = toRad(point1.lat);
         const lat2 = toRad(point2.lat);
 
+        // صيغة هافرسين المحسنة لحساب المسافة
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+                Math.cos(lat1) * Math.cos(lat2) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+        const distance = R * c;
+
+        // تنسيق المسافة
+        if (distance < 1) {
+            // تحويل إلى أمتار إذا كانت المسافة أقل من 1 كم
+            return {
+                value: Math.round(distance * 1000),
+                unit: 'م',
+                raw: distance
+            };
+        } else {
+            return {
+                value: parseFloat(distance.toFixed(1)),
+                unit: 'كم',
+                raw: distance
+            };
+        }
+    } catch (error) {
+        console.error('Error calculating distance:', error);
+        return null;
+    }
+}
+
+function toRad(degrees) {
+    return degrees * (Math.PI / 180);
+}
+
+function loadDrivers(location = 'all') {
+    if (isLoadingDrivers) return;
+    isLoadingDrivers = true;
+
+    showLoading();
+    const driversRef = database.ref('drivers');
+
+    // مراقبة تغييرات موقع المستخدم
+    let userLocationWatch = null;
+    if (navigator.geolocation) {
+        userLocationWatch = navigator.geolocation.watchPosition(
+            (position) => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                updateDistances();
+            },
+            (error) => console.error('Location error:', error),
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
     }
 
-    function toRad(degrees) {
-        return degrees * Math.PI / 180;
-    }
+    driversRef.on('value', (snapshot) => {
+        try {
+            const driversGrid = document.getElementById('driversGrid');
+            driversGrid.innerHTML = '';
+            markerLayer.clearLayers();
 
-    function loadDrivers(location = 'all') {
-        if (isLoadingDrivers) return;
-        isLoadingDrivers = true;
-
-        showLoading();
-        const driversRef = database.ref('drivers');
-
-        driversRef.once('value')
-            .then((snapshot) => {
-                const driversGrid = document.getElementById('driversGrid');
-                driversGrid.innerHTML = '';
-                markerLayer.clearLayers();
-
-                snapshot.forEach((childSnapshot) => {
-                    const driver = childSnapshot.val();
-                    if (location === 'all' || driver.location === location) {
-                        driversGrid.innerHTML += createDriverCard(driver, childSnapshot.key);
-
-                        if (driver.coordinates) {
-                            const { lat, lng } = driver.coordinates;
-
-                            // إنشاء العلامة بمعلومات السائق
-                            const driverMarker = L.marker([lat, lng], {
-                                icon: L.divIcon({
-                                    html: `<img src="${driver.imageUrl}" 
-                                              alt="صورة السائق" 
-                                              style="width: 35px; height: 35px; border-radius: 50%; border: 2px solid #FFD700;">`,
-                                    className: 'driver-marker',
-                                    iconSize: [40, 40],
-                                }),
-                            }).addTo(markerLayer);
-
-                            // تحديث النافذة المنبثقة
-                            driverMarker.bindPopup(`
-                            <div style="text-align: center;">
-                                <div style="margin-bottom: 10px;">
-                                    <img src="${driver.imageUrl || 'default-avatar.png'}" 
-                                         alt="صورة السائق" 
-                                         style="width: 70px; height: 70px; border-radius: 50%; border: 3px solid #FFD700; margin-bottom: 10px;">
-                                    <h6 style="margin: 5px 0; font-weight: bold;">${driver.name}</h6>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px;">
-                                    <div>
-                                        <i class="fas fa-star" style="color: #FFD700;"></i>
-                                        ${driver.rating ? driver.rating.toFixed(1) : '5.0'}
-                                    </div>
-                                    <div>
-                                        <i class="fas fa-route"></i>
-                                        ${driver.trips || 0}
-                                    </div>
-                                </div>
-
-                                <div style="margin-bottom: 10px;">
-                                    <p style="margin: 5px 0;">🚗 ${driver.carType} - ${driver.carModel}</p>
-                                    <p style="margin: 5px 0;">📍 ${driver.location}</p>
-                                </div>
-
-                                <button onclick="openChatWindow('${childSnapshot.key}')" 
-                                        style="background: #FFD700; color: #333; border: none; 
-                                               padding: 8px 15px; border-radius: 20px; width: 100%;
-                                               cursor: pointer; display: flex; align-items: center; 
-                                               justify-content: center; gap: 5px; font-weight: bold;">
-                                    <i class="fas fa-comment"></i>
-                                    مراسلة السائق
-                                </button>
-                            </div>
-                        `, {
-                                maxWidth: 250
-                            });
-                        }
+            snapshot.forEach((childSnapshot) => {
+                const driver = childSnapshot.val();
+                if (location === 'all' || driver.location === location) {
+                    // حساب المسافة للسائق
+                    let distanceInfo = null;
+                    if (userLocation && driver.coordinates) {
+                        distanceInfo = calculateDistance(userLocation, driver.coordinates);
                     }
-                });
 
-                hideLoading();
-            })
-            .catch((error) => {
-                console.error('Error loading drivers:', error);
-                showToast('حدث خطأ في تحميل بيانات السائقين', 'error');
-            })
-            .finally(() => {
-                isLoadingDrivers = false;
+                    // إضافة معلومات المسافة إلى بيانات السائق
+                    const driverWithDistance = {
+                        ...driver,
+                        distance: distanceInfo
+                    };
+
+                    // إنشاء وإضافة بطاقة السائق
+                    driversGrid.innerHTML += createDriverCard(driverWithDistance, childSnapshot.key);
+
+                    // إضافة علامة على الخريطة
+                    if (driver.coordinates) {
+                        addDriverMarker(driver, childSnapshot.key, distanceInfo);
+                    }
+                }
             });
+
+            // ترتيب البطاقات حسب المسافة
+            sortDriverCards();
+        } catch (error) {
+            console.error('Error rendering drivers:', error);
+            showToast('حدث خطأ في عرض بيانات السائقين', 'error');
+        } finally {
+            hideLoading();
+            isLoadingDrivers = false;
+        }
+    });
+
+    // دالة إضافة علامة السائق على الخريطة
+    function addDriverMarker(driver, driverId, distanceInfo) {
+        const { lat, lng } = driver.coordinates;
+        const distanceText = distanceInfo ? 
+            `المسافة: ${distanceInfo.value}${distanceInfo.unit}` : 
+            'المسافة غير متوفرة';
+
+        const marker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                html: `
+                    <div class="driver-marker-container">
+                        <img src="${driver.imageUrl}" 
+                             alt="${driver.name}" 
+                             class="driver-marker-image">
+                        ${driver.active ? 
+                            '<span class="status-dot active"></span>' : 
+                            '<span class="status-dot inactive"></span>'}
+                    </div>`,
+                className: 'custom-driver-marker',
+                iconSize: [40, 40]
+            })
+        }).addTo(markerLayer);
+
+        marker.bindPopup(`
+            <div class="driver-popup">
+                <div class="driver-popup-header">
+                    <img src="${driver.imageUrl}" alt="${driver.name}">
+                    <h6>${driver.name}</h6>
+                </div>
+                <div class="driver-popup-info">
+                    <p><i class="fas fa-car"></i> ${driver.carType} - ${driver.carModel}</p>
+                    <p><i class="fas fa-map-marker-alt"></i> ${driver.location}</p>
+                    <p><i class="fas fa-route"></i> ${distanceText}</p>
+                </div>
+                <button onclick="openChatWindow('${driverId}')" class="chat-button">
+                    <i class="fas fa-comment"></i> مراسلة السائق
+                </button>
+            </div>
+        `);
+
+        // تحديث موقع العلامة عند تحديث موقع السائق
+        driversRef.child(driverId).on('value', (snapshot) => {
+            const updatedDriver = snapshot.val();
+            if (updatedDriver && updatedDriver.coordinates) {
+                marker.setLatLng([updatedDriver.coordinates.lat, updatedDriver.coordinates.lng]);
+            }
+        });
     }
+
+    // دالة ترتيب البطاقات حسب المسافة
+    function sortDriverCards() {
+        const cards = Array.from(document.getElementsByClassName('driver-card'));
+        cards.sort((a, b) => {
+            const distanceA = parseFloat(a.dataset.distance) || Infinity;
+            const distanceB = parseFloat(b.dataset.distance) || Infinity;
+            return distanceA - distanceB;
+        });
+
+        const container = document.getElementById('driversGrid');
+        cards.forEach(card => container.appendChild(card));
+    }
+
+    // دالة تحديث المسافات
+    function updateDistances() {
+        const cards = document.getElementsByClassName('driver-card');
+        Array.from(cards).forEach(card => {
+            const driverId = card.dataset.driverId;
+            const driver = snapshot.child(driverId).val();
+            if (driver && driver.coordinates && userLocation) {
+                const distanceInfo = calculateDistance(userLocation, driver.coordinates);
+                updateCardDistance(card, distanceInfo);
+            }
+        });
+        sortDriverCards();
+    }
+}
+
+// دالة تحديث المسافة في البطاقة
+function updateCardDistance(card, distanceInfo) {
+    const distanceElement = card.querySelector('.distance-value');
+    if (distanceElement && distanceInfo) {
+        distanceElement.textContent = `${distanceInfo.value}${distanceInfo.unit}`;
+        card.dataset.distance = distanceInfo.raw;
+    }
+}
 
     // تحديث دالة إنشاء بطاقة السائق
     // دالة إنشاء بطاقة السائق المحدثة
