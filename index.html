@@ -157,6 +157,8 @@
     color: var(--background-dark);
 }
 
+
+
 .action-btn.secondary {
     background: var(--background-dark);
     color: var(--primary-color);
@@ -4235,6 +4237,8 @@ body {
     padding-left: 0;
     padding-right: 0;
 }
+
+
     </style>
 </head>
 <body>
@@ -4793,7 +4797,8 @@ body {
                     <h5 class="modal-title" id="driverName">اسم السائق</h5>
                     <small id="driverCardInfo" style="color: #ffffff;">بطاقة السائق</small>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+
             </div>
             <!-- اختيار المشوار -->
             <div class="modal-body chat-body">
@@ -6717,19 +6722,7 @@ function toRad(degrees) {
         <div class="driver-card animate__animated animate__fadeIn" data-driver-id="${key}">
             <!-- قسم أزرار الإجراءات العلوية -->
             <div class="driver-card-actions">
-                <button class="action-icon delete-btn" onclick="confirmDeleteDriver('${key}')" title="حذف السائق">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-                <button class="action-icon edit-btn" onclick="showEditDriverModal('${key}')" title="تعديل البيانات">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <!-- إضافة أزرار التتبع -->
-                <button class="action-icon track-btn" onclick="startDriverLocationTracking('${key}')" title="تفعيل تتبع الموقع">
-                    <i class="fas fa-location-arrow"></i>
-                </button>
-                <button class="action-icon stop-track-btn" onclick="stopDriverLocationTracking()" title="إيقاف التتبع">
-                    <i class="fas fa-stop-circle"></i>
-                </button>
+              
             </div>
 
             <!-- صورة السائق والحالة -->
