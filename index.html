@@ -7196,7 +7196,19 @@ function stopDriverLocationTracking() {
         }
     }
 
-
+    function loadProvinces() {
+        const provinces = ['بغداد', 'الكرخ', 'الرصافة', 'البصرة', 'نينوى', 'الموصل', 'النجف', 'الكوفة', 'كربلاء', 'الحسينية', 'أربيل', 'كركوك', 'الأنبار', 'الرمادي', 'الفلوجة', 'بابل', 'الحلة', 'المسيب', 'الهاشمية', 'القاسم', 'ديالى', 'بعقوبة', 'ذي قار', 'الناصرية', 'السليمانية', 'صلاح الدين', 'تكريت', 'واسط', 'الكوت', 'ميسان', 'العمارة', 'المثنى', 'السماوة', 'دهوك', 'القادسية', 'الديوانية'];
+        const provinceSelect = document.querySelector('#userRegistrationForm select[name="province"]');
+        provinces.forEach(province => {
+            const option = document.createElement('option');
+            option.value = province;
+            option.textContent = province;
+            provinceSelect.appendChild(option);
+        });
+    }
+    
+    // استدعاء الدالة عند تحميل الصفحة
+    window.addEventListener('load', loadProvinces);
     function handleImagePreview(event) {
         const file = event.target.files[0];
         if (file) {
@@ -8260,77 +8272,147 @@ function logoutUser() {
         }
     }
 
-    // دالة معالجة تسجيل المستخدم
     async function handleUserRegistration(event) {
         event.preventDefault();
         showLoading();
-
+    
         try {
             const formData = new FormData(event.target);
-
-            // التحقق من تطابق كلمات المرور
-            if (formData.get('password') !== formData.get('confirmPassword')) {
-                throw new Error('كلمات المرور غير متطابقة');
-            }
-
-            // التحقق من الموافقة على الشروط والأحكام
-            if (!formData.get('terms')) {
-                throw new Error('يجب الموافقة على الشروط والأحكام');
-            }
-
-            // إنشاء معرف فريد للمستخدم
             const userId = `USER${Date.now()}`;
-
-            // رفع الصورة الشخصية
             let photoUrl = null;
+    
+            // Handle photo upload
             const photoFile = document.getElementById('userPhoto').files[0];
             if (photoFile) {
-                const imageRef = storage.ref(`users/${userId}/${Date.now()}_${photoFile.name}`);
+                const imageRef = storage.ref(`users/${userId}/profile/${photoFile.name}`);
                 const uploadTask = await imageRef.put(photoFile);
                 photoUrl = await uploadTask.ref.getDownloadURL();
             }
-
-            // إعداد بيانات المستخدم
+    
             const userData = {
                 id: userId,
-                fullName: formData.get('fullName'),
-                email: formData.get('email'),
-                phone: formData.get('phone'),
+                fullName: formData.get('fullName').trim(),
+                email: formData.get('email').trim(),
+                phone: formData.get('phone').trim(),
                 province: formData.get('province'),
                 area: formData.get('area'),
                 address: formData.get('address'),
                 photoUrl: photoUrl,
+                role: 'user',
                 createdAt: firebase.database.ServerValue.TIMESTAMP
             };
-
-            // حفظ البيانات في Firebase
-            await database.ref('users').child(userId).set(userData);
-
-            // إغلاق النافذة وإظهار رسالة النجاح
+    
+            // Save to Firebase
+            await database.ref(`users/${userId}`).set(userData);
+    
+            // Save user session
+            const userSession = {
+                id: userId,
+                name: userData.fullName,
+                imageUrl: photoUrl,
+                role: 'user'
+            };
+            localStorage.setItem('user', JSON.stringify(userSession));
+    
+            // Update UI components
+            updateUserProfile(userSession);
+            updateSideNavProfile(userSession);
+    
             const modal = bootstrap.Modal.getInstance(document.getElementById('userRegistrationModal'));
             modal.hide();
-
-            Swal.fire({
-                title: 'تم التسجيل بنجاح!',
-                text: 'مرحباً بك في تطبيق تاكسي العراق',
-                icon: 'success',
-                confirmButtonColor: '#FFD700',
-                confirmButtonText: 'تم'
-            });
-
+            event.target.reset();
+    
+            showToast('تم التسجيل بنجاح!');
         } catch (error) {
             console.error('Registration error:', error);
-            Swal.fire({
-                title: 'خطأ!',
-                text: error.message || 'حدث خطأ أثناء التسجيل',
-                icon: 'error',
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'حسناً'
-            });
+            showToast(error.message, 'error');
         } finally {
             hideLoading();
         }
     }
+    
+    function updateUserProfile(user) {
+        const userProfile = document.getElementById('userProfile');
+        const loginButton = document.getElementById('loginButton');
+        const logoutButton = document.getElementById('logoutButton');
+    
+        if (user) {
+            // Update header profile
+            userProfile.style.display = 'flex';
+            userProfile.querySelector('#userProfileImage').src = user.imageUrl || 'default-avatar.png';
+            userProfile.querySelector('#userProfileName').textContent = user.name;
+    
+            // Update buttons visibility
+            loginButton.style.display = 'none';
+            logoutButton.style.display = 'flex';
+    
+            // Update side nav
+            updateSideNavProfile(user);
+        } else {
+            userProfile.style.display = 'none';
+            loginButton.style.display = 'flex';
+            logoutButton.style.display = 'none';
+        }
+    }
+    
+    function updateSideNavProfile(user) {
+        const sideNavProfile = document.querySelector('.side-nav .user-profile');
+        if (sideNavProfile && user) {
+            sideNavProfile.style.display = 'flex';
+            sideNavProfile.querySelector('.user-profile-image').src = user.imageUrl || 'default-avatar.png';
+            sideNavProfile.querySelector('.user-profile-name').textContent = user.name;
+        }
+    }
+    
+    // Check for existing session on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const userSession = JSON.parse(localStorage.getItem('user'));
+        if (userSession) {
+            updateUserProfile(userSession);
+        }
+    
+        const userRegistrationForm = document.getElementById('userRegistrationForm');
+        if (userRegistrationForm) {
+            userRegistrationForm.addEventListener('submit', handleUserRegistration);
+        }
+    });
+    
+    // Helper functions
+    function validateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+    
+    async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hash))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+    }
+    
+    async function getCurrentLocation() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Geolocation not supported'));
+                return;
+            }
+    
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            });
+        });
+    }
+    
+    // Add event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        const userRegistrationForm = document.getElementById('userRegistrationForm');
+        if (userRegistrationForm) {
+            userRegistrationForm.addEventListener('submit', handleUserRegistration);
+        }
+    });
 
     // إضافة مستمع الحدث لنموذج التسجيل
     document.addEventListener('DOMContentLoaded', function () {
