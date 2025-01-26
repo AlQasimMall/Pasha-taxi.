@@ -1,0 +1,163 @@
+importScripts('https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js');
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDGpAHia_wEmrhnmYjrPf1n1TrAzwEMiAI",
+  authDomain: "messageemeapp.firebaseapp.com",
+  projectId: "messageemeapp",
+  storageBucket: "messageemeapp.appspot.com",
+  messagingSenderId: "255034474844",
+  appId: "1:255034474844:web:5e3b7a6bc4b2fb94cc4199"
+};
+
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging();
+
+const notificationConfig = {
+  default: {
+    requireInteraction: true,
+    silent: false,
+    vibrate: [200, 100, 200],
+    badge: '/Pasha-Taxi-/icons/icon-badge.png',
+    icon: '/Pasha-Taxi-/icons/icon.png',
+    tag: 'taxi-notification',
+    renotify: true,
+    actions: [
+      {
+        action: 'open_app',
+        title: 'فتح التطبيق',
+        icon: '/Pasha-Taxi-/icons/open-icon.png'
+      },
+      {
+        action: 'dismiss',
+        title: 'إغلاق',
+        icon: '/Pasha-Taxi-/icons/dismiss-icon.png'
+      }
+    ]
+  },
+  urgent: {
+    requireInteraction: true,
+    silent: false,
+    vibrate: [400, 100, 400, 100, 400],
+    priority: 'high',
+    icon: '/Pasha-Taxi-/icons/urgent-icon.png',
+    badge: '/Pasha-Taxi-/icons/urgent-badge.png',
+    actions: [
+      {
+        action: 'urgent_open',
+        title: 'فتح الآن',
+        icon: '/Pasha-Taxi-/icons/urgent-icon.png'
+      }
+    ]
+  }
+};
+
+messaging.onBackgroundMessage(async payload => {
+  console.log('[SW] Background message:', payload);
+
+  const notificationType = payload.data?.type || 'default';
+  const config = notificationConfig[notificationType];
+
+  try {
+    const notificationOptions = {
+      ...config,
+      body: payload.notification.body,
+      title: payload.notification.title,
+      data: {
+        url: payload.data?.url || '/Pasha-Taxi-/',
+        timestamp: Date.now(),
+        type: notificationType,
+        payload: payload
+      },
+      timestamp: Date.now(),
+      dir: 'rtl',
+      lang: 'ar',
+      image: payload.notification.image,
+      icon: payload.notification.icon || config.icon,
+      sound: '/Pasha-Taxi-/sounds/notification.mp3',
+      tag: `${notificationType}-${Date.now()}`,
+      vibrate: config.vibrate,
+      badge: config.badge
+    };
+
+    await self.registration.showNotification(
+      notificationOptions.title,
+      notificationOptions
+    );
+
+    // Track notification metrics
+    await trackNotification(payload, 'received');
+
+  } catch (error) {
+    console.error('[SW] Error showing notification:', error);
+  }
+});
+
+self.addEventListener('notificationclick', event => {
+  const notification = event.notification;
+  const action = event.action;
+  const data = notification.data;
+
+  notification.close();
+  
+  if (action === 'dismiss') {
+    trackNotification(data.payload, 'dismissed');
+    return;
+  }
+
+  const urlToOpen = `${data.url || '/Pasha-Taxi-/'}`;
+  
+  event.waitUntil(
+    (async () => {
+      try {
+        const windowClients = await clients.matchAll({
+          type: 'window',
+          includeUncontrolled: true
+        });
+
+        // Focus existing window if found
+        for (const client of windowClients) {
+          if (client.url.includes(urlToOpen) && 'focus' in client) {
+            await client.focus();
+            await trackNotification(data.payload, 'clicked');
+            return;
+          }
+        }
+
+        // Open new window if none found
+        if (clients.openWindow) {
+          await clients.openWindow(urlToOpen);
+          await trackNotification(data.payload, 'clicked_new_window');
+        }
+
+      } catch (error) {
+        console.error('[SW] Error handling notification click:', error);
+      }
+    })()
+  );
+});
+
+self.addEventListener('notificationclose', event => {
+  const notification = event.notification;
+  const data = notification.data;
+
+  trackNotification(data.payload, 'closed');
+});
+
+// Helper function to track notification events
+async function trackNotification(payload, action) {
+  try {
+    const trackingData = {
+      action,
+      timestamp: Date.now(),
+      notificationType: payload.data?.type || 'default',
+      notificationId: payload.data?.notificationId,
+      userId: payload.data?.userId
+    };
+
+    console.log('[SW] Tracking notification:', trackingData);
+    
+  } catch (error) {
+    console.error('[SW] Error tracking notification:', error);
+  }
+}
