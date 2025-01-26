@@ -28,8 +28,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 
     <!-- App CSS -->
-    <link rel="stylesheet" href="style.css?v=2">
-<script src="app.js?v=2"></script>
     <link rel="stylesheet" href="./style.css">
 
     <!-- Meta Tags -->
@@ -4240,77 +4238,6 @@ body {
     padding-right: 0;
 }
 
-/* أنماط لعرض صورة واسم المستخدم */
-#userProfile {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-}
-
-#userProfile img {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    margin-right: 5px;
-    border: 2px solid #FFD700;
-}
-
-#userProfile span {
-    font-weight: bold;
-    color: #FFD700;
-}
-
-
-/* أنماط لعرض صورة المستخدم واسمه في الشريط الجانبي */
-.side-nav-header {
-    padding: 20px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-    margin-bottom: 10px;
-}
-
-.user-profile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.user-profile-image {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    border: 3px solid #FFD700;
-    object-fit: cover;
-}
-
-.user-profile-name {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #FFD700;
-}
-
-/* أنماط زر تسجيل الخروج */
-.logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 20px;
-    color: #FFD700;
-    background-color: rgba(255, 215, 0, 0.1);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.logout-btn:hover {
-    background-color: rgba(255, 215, 0, 0.2);
-    transform: translateY(-2px);
-}
-
-.logout-btn i {
-    font-size: 1.2rem;
-}
 
     </style>
 </head>
@@ -4338,33 +4265,25 @@ body {
                         <!-- أيقونة البحث بجانب الاسم -->
                         <div class="side-nav" id="sideNav">
                             <div class="side-nav-header">
-        <div id="userProfile" class="user-profile" style="display: none;">
-            <img id="userProfileImage" src="#" alt="صورة المستخدم" class="user-profile-image">
-            <span id="userProfileName" class="user-profile-name"></span>
-        </div>
-    </div>
-
-    <!-- عناصر القائمة الجانبية -->
-    <div class="side-nav-items">
-        <a href="/" class="side-nav-item"><i class="fas fa-home"></i> الرئيسية</a>
-        <a href="/drivers" class="side-nav-item"><i class="fas fa-users"></i> السائقين</a>
-        <!-- زر الإضافة تحت السائقين -->
-        <button class="add-driver-btn side-nav-item" onclick="showAddDriverModal()">
-            <i class="fas fa-user-plus"></i> إضافة سائق
-        </button>
-        <a href="/trips" class="side-nav-item"><i class="fas fa-car"></i> الرحلات</a>
-        <a href="/map" class="side-nav-item"><i class="fas fa-map"></i> الخريطة</a>
-        <a href="/notifications" class="side-nav-item"><i class="fas fa-bell"></i> الإشعارات</a>
-        <a href="/messages" class="side-nav-item"><i class="fas fa-envelope"></i> الرسائل</a>
-        <a href="/settings" class="side-nav-item"><i class="fas fa-cog"></i> الإعدادات</a>
-    </div>
-
-    <!-- زر تسجيل الخروج -->
-    <div id="logoutButton" class="side-nav-item logout-btn" onclick="logoutUser()" style="display: none;">
-        <i class="fas fa-sign-out-alt"></i>
-        <span class="ms-1 d-none d-md-inline">تسجيل الخروج</span>
-    </div>
-</div>
+                                <h2 class="side-nav-title">تاكسي العراق</h2>
+                                <button class="side-nav-close" onclick="toggleSideNav()">×</button>
+                            </div>
+                            <div class="side-nav-items">
+                                <a href="/" class="side-nav-item"><i class="fas fa-home"></i> الرئيسية</a>
+                                <a href="/drivers" class="side-nav-item"><i class="fas fa-users"></i> السائقين</a>
+                                <!-- زر الإضافة تحت السائقين -->
+                                
+                                
+                                <button class="add-driver-btn side-nav-item" onclick="showAddDriverModal()">
+                                    <i class="fas fa-user-plus"></i> إضافة سائق
+                                </button>
+                                <a href="/trips" class="side-nav-item"><i class="fas fa-car"></i> الرحلات</a>
+                                <a href="/map" class="side-nav-item"><i class="fas fa-map"></i> الخريطة</a>
+                                <a href="/notifications" class="side-nav-item"><i class="fas fa-bell"></i> الإشعارات</a>
+                                <a href="/messages" class="side-nav-item"><i class="fas fa-envelope"></i> الرسائل</a>
+                                <a href="/settings" class="side-nav-item"><i class="fas fa-cog"></i> الإعدادات</a>
+                            </div>
+                        </div>
 
                         <!-- شريط الأدوات السفلي -->
                         <div class="bottom-nav">
@@ -4406,22 +4325,10 @@ body {
     </a>
 
     <!-- Profile/Account Icon - يفتح نافذة اختيار نوع الحساب -->
-    
-                                
-                               
-
-<!-- استبدله بهذا الكود -->
-<div id="userProfile" class="nav-link user-profile-btn" style="display: none;">
-    <img id="userProfileImage" src="#" alt="صورة المستخدم" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 5px;">
-    <span id="userProfileName" class="ms-1 d-none d-md-inline"></span>
-</div>
-
-<a id="loginButton" class="nav-link user-profile-btn" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
-    <i class="fas fa-user"></i>
-    <span class="ms-1 d-none d-md-inline">تسجيل</span>
-</a>
-
-
+    <a class="nav-link user-profile-btn" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+        <i class="fas fa-user"></i>
+        <span class="ms-1 d-none d-md-inline">تسجيل</span>
+    </a>
 </div>
 
 </nav>
@@ -5545,11 +5452,6 @@ notificationHandler.initialize().catch(console.error);
             alert('يرجى إدخال جميع البيانات بشكل صحيح.');
         }
     }
-    
-    window.addEventListener('load', () => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    updateUserProfile(user);
-});
 
     function addRating(driverId) {
         database.ref(`drivers/${driverId}`).transaction((driver) => {
@@ -7696,188 +7598,145 @@ async function handleAddDriver(event) {
     // دالة معالجة تسجيل السائق
     // دالة معالجة تسجيل السائق المحسنة
     async function handleDriverRegistration(event) {
-    event.preventDefault();
-    showLoading();
+        event.preventDefault();
+        showLoading();
 
-    try {
-        const formData = new FormData(event.target);
-        const fullName = formData.get('fullName')?.trim();
-
-        // التحقق من الاسم
-        if (!fullName) {
-            throw new Error('يرجى إدخال الاسم الكامل');
-        }
-
-        // التحقق من طول الاسم
-        if (fullName.length < 2 || fullName.length > 50) {
-            throw new Error('يجب أن يكون الاسم بين 2 و 50 حرف');
-        }
-
-        // التحقق من رقم الهاتف
-        const phone = formData.get('phone')?.trim();
-        if (!phone || phone.length < 10) {
-            throw new Error('يرجى إدخال رقم هاتف صحيح');
-        }
-
-        // التحقق من العمر
-        const age = parseInt(formData.get('age'));
-        if (!age || age < 18 || age > 70) {
-            throw new Error('يجب أن يكون العمر بين 18 و 70 سنة');
-        }
-
-        // إنشاء معرف فريد للسائق
-        const driverId = `DR${Date.now()}`;
-
-        // إعداد بيانات السائق
-        const driverData = {
-            id: driverId,
-            fullName: fullName,
-            age: age,
-            phone: phone,
-            vehicleType: formData.get('vehicleType')?.trim(),
-            vehicleModel: formData.get('vehicleModel')?.trim(),
-            vehicleNumber: formData.get('vehicleNumber')?.trim(),
-            vehicleColor: formData.get('vehicleColor')?.trim(),
-            province: formData.get('province')?.trim(),
-            area: formData.get('area')?.trim(),
-            address: formData.get('address')?.trim(),
-            status: 'pending',
-            createdAt: firebase.database.ServerValue.TIMESTAMP,
-            lastUpdated: firebase.database.ServerValue.TIMESTAMP
-        };
-
-        // التحقق من الصورة الشخصية
-        const photoFile = document.getElementById('driverPhoto').files[0];
-        if (!photoFile) {
-            throw new Error('يرجى اختيار صورة شخصية');
-        }
-
-        // التحقق من نوع الملف
-        const validImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-        if (!validImageTypes.includes(photoFile.type)) {
-            throw new Error('يرجى اختيار صورة بصيغة JPG أو PNG');
-        }
-
-        // رفع الصورة الشخصية مع إظهار نسبة التقدم
         try {
-            driverData.photoUrl = await uploadFile(photoFile, 'driver-photos');
-        } catch (uploadError) {
-            throw new Error('فشل في رفع الصورة الشخصية: ' + uploadError.message);
-        }
+            const formData = new FormData(event.target);
+            const fullName = formData.get('fullName')?.trim();
 
-        // رفع المستندات
-        const documents = {};
-        const requiredDocuments = {
-            idFront: 'هوية-امامي',
-            idBack: 'هوية-خلفي',
-            licenseFront: 'اجازة-امامي',
-            licenseBack: 'اجازة-خلفي'
-        };
+            // التحقق من الاسم
+            if (!fullName) {
+                throw new Error('يرجى إدخال الاسم الكامل');
+            }
 
-        for (const [inputId, docName] of Object.entries(requiredDocuments)) {
-            const file = document.getElementById(inputId).files[0];
-            if (!file) {
-                throw new Error(`يرجى رفع ${docName}`);
+            // التحقق من طول الاسم
+            if (fullName.length < 2 || fullName.length > 50) {
+                throw new Error('يجب أن يكون الاسم بين 2 و 50 حرف');
             }
-            if (!validImageTypes.includes(file.type)) {
-                throw new Error(`يرجى رفع ${docName} بصيغة JPG أو PNG`);
+
+            // التحقق من رقم الهاتف
+            const phone = formData.get('phone')?.trim();
+            if (!phone || phone.length < 10) {
+                throw new Error('يرجى إدخال رقم هاتف صحيح');
             }
+
+            // التحقق من العمر
+            const age = parseInt(formData.get('age'));
+            if (!age || age < 18 || age > 70) {
+                throw new Error('يجب أن يكون العمر بين 18 و 70 سنة');
+            }
+
+            // إنشاء معرف فريد للسائق
+            const driverId = `DR${Date.now()}`;
+
+            // إعداد بيانات السائق
+            const driverData = {
+                id: driverId,
+                fullName: fullName,
+                age: age,
+                phone: phone,
+                vehicleType: formData.get('vehicleType')?.trim(),
+                vehicleModel: formData.get('vehicleModel')?.trim(),
+                vehicleNumber: formData.get('vehicleNumber')?.trim(),
+                vehicleColor: formData.get('vehicleColor')?.trim(),
+                province: formData.get('province')?.trim(),
+                area: formData.get('area')?.trim(),
+                address: formData.get('address')?.trim(),
+                status: 'pending',
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                lastUpdated: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            // التحقق من الصورة الشخصية
+            const photoFile = document.getElementById('driverPhoto').files[0];
+            if (!photoFile) {
+                throw new Error('يرجى اختيار صورة شخصية');
+            }
+
+            // التحقق من نوع الملف
+            const validImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!validImageTypes.includes(photoFile.type)) {
+                throw new Error('يرجى اختيار صورة بصيغة JPG أو PNG');
+            }
+
+            // رفع الصورة الشخصية مع إظهار نسبة التقدم
             try {
-                documents[docName] = await uploadFile(file, 'driver-documents');
+                driverData.photoUrl = await uploadFile(photoFile, 'driver-photos');
             } catch (uploadError) {
-                throw new Error(`فشل في رفع ${docName}: ${uploadError.message}`);
+                throw new Error('فشل في رفع الصورة الشخصية: ' + uploadError.message);
             }
+
+            // رفع المستندات
+            const documents = {};
+            const requiredDocuments = {
+                idFront: 'هوية-امامي',
+                idBack: 'هوية-خلفي',
+                licenseFront: 'اجازة-امامي',
+                licenseBack: 'اجازة-خلفي'
+            };
+
+            for (const [inputId, docName] of Object.entries(requiredDocuments)) {
+                const file = document.getElementById(inputId).files[0];
+                if (!file) {
+                    throw new Error(`يرجى رفع ${docName}`);
+                }
+                if (!validImageTypes.includes(file.type)) {
+                    throw new Error(`يرجى رفع ${docName} بصيغة JPG أو PNG`);
+                }
+                try {
+                    documents[docName] = await uploadFile(file, 'driver-documents');
+                } catch (uploadError) {
+                    throw new Error(`فشل في رفع ${docName}: ${uploadError.message}`);
+                }
+            }
+            driverData.documents = documents;
+
+            // إنشاء الباركود باستخدام رقم الطلب فقط
+            let qrCodeUrl;
+            try {
+                qrCodeUrl = generateDriverQR({ id: driverId });
+                await validateQRCode(qrCodeUrl);
+                driverData.qrCode = qrCodeUrl;
+            } catch (qrError) {
+                console.error('QR Code error:', qrError);
+                // نستمر في العملية حتى لو فشل إنشاء الباركود
+                driverData.qrCode = null;
+            }
+
+            // حفظ البيانات في Firebase
+            try {
+                await database.ref('Drivers').child(driverId).set(driverData);
+            } catch (dbError) {
+                console.error('Firebase error:', dbError);
+                throw new Error('حدث خطأ أثناء حفظ البيانات، يرجى المحاولة مرة أخرى');
+            }
+
+            // عرض رسالة النجاح
+            await showSuccessModal(driverData, qrCodeUrl);
+
+            // إغلاق النافذة وإعادة تعيين النموذج
+            const modal = bootstrap.Modal.getInstance(document.getElementById('driverRegistrationModal'));
+            if (modal) {
+                modal.hide();
+                event.target.reset();
+                resetPreviews();
+            }
+
+        } catch (error) {
+            console.error('Registration error:', error);
+            Swal.fire({
+                title: 'خطأ!',
+                text: error.message || 'حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى',
+                icon: 'error',
+                confirmButtonText: 'حسناً',
+                confirmButtonColor: '#d33'
+            });
+        } finally {
+            hideLoading();
         }
-        driverData.documents = documents;
-
-        // إنشاء الباركود باستخدام رقم الطلب فقط
-        let qrCodeUrl;
-        try {
-            qrCodeUrl = generateDriverQR({ id: driverId });
-            await validateQRCode(qrCodeUrl);
-            driverData.qrCode = qrCodeUrl;
-        } catch (qrError) {
-            console.error('QR Code error:', qrError);
-            // نستمر في العملية حتى لو فشل إنشاء الباركود
-            driverData.qrCode = null;
-        }
-
-        // حفظ البيانات في Firebase
-        try {
-            await database.ref('Drivers').child(driverId).set(driverData);
-        } catch (dbError) {
-            console.error('Firebase error:', dbError);
-            throw new Error('حدث خطأ أثناء حفظ البيانات، يرجى المحاولة مرة أخرى');
-        }
-
-        // حفظ بيانات المستخدم في localStorage
-        const userData = {
-            id: driverId,
-            name: fullName,
-            imageUrl: driverData.photoUrl,
-            role: 'driver'
-        };
-        localStorage.setItem('user', JSON.stringify(userData));
-
-        // تحديث واجهة المستخدم
-        updateUserProfile(userData);
-
-        // عرض رسالة النجاح
-        await showSuccessModal(driverData, qrCodeUrl);
-
-        // إغلاق النافذة وإعادة تعيين النموذج
-        const modal = bootstrap.Modal.getInstance(document.getElementById('driverRegistrationModal'));
-        if (modal) {
-            modal.hide();
-            event.target.reset();
-            resetPreviews();
-        }
-
-    } catch (error) {
-        console.error('Registration error:', error);
-        Swal.fire({
-            title: 'خطأ!',
-            text: error.message || 'حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى',
-            icon: 'error',
-            confirmButtonText: 'حسناً',
-            confirmButtonColor: '#d33'
-        });
-    } finally {
-        hideLoading();
     }
-}
 
-function updateUserProfile(user) {
-    const userProfile = document.getElementById('userProfile');
-    const loginButton = document.getElementById('loginButton');
-    const logoutButton = document.getElementById('logoutButton');
-    const userProfileImage = document.getElementById('userProfileImage');
-    const userProfileName = document.getElementById('userProfileName');
-
-    if (user) {
-        // إظهار صورة واسم المستخدم
-        userProfile.style.display = 'flex';
-        userProfileImage.src = user.imageUrl || 'default-avatar.png';
-        userProfileName.textContent = user.name || 'مستخدم';
-
-        // إخفاء زر التسجيل وإظهار زر تسجيل الخروج
-        loginButton.style.display = 'none';
-        logoutButton.style.display = 'block';
-    } else {
-        // إخفاء صورة واسم المستخدم
-        userProfile.style.display = 'none';
-
-        // إظهار زر التسجيل وإخفاء زر تسجيل الخروج
-        loginButton.style.display = 'block';
-        logoutButton.style.display = 'none';
-    }
-}
-
-function logoutUser() {
-    localStorage.removeItem('user');
-    updateUserProfile(null);
-    showToast('تم تسجيل الخروج بنجاح');
-}
     // دالة مساعدة لإظهار نسبة التقدم أثناء رفع الملفات
     function showUploadProgress(progress) {
         const progressBar = document.querySelector('.upload-progress');
@@ -9083,48 +8942,6 @@ document.addEventListener('DOMContentLoaded', () => {
         startDriverLocationTracking(activeDriverId);
     }
 });
-
-<!-- Service Worker Registration -->
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const registration = await navigator.serviceWorker.register('/Pasha-Taxi-/firebase-messaging-sw.js', {
-        scope: '/Pasha-Taxi-/'
-      });
-      console.log('ServiceWorker registered:', registration);
-
-      messaging.useServiceWorker(registration);
-      
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed') {
-            if (navigator.serviceWorker.controller) {
-              showUpdateNotification();
-            }
-          }
-        });
-      });
-      
-    } catch (error) {
-      console.error('ServiceWorker registration failed:', error);
-    }
-  });
-}
-
-function showUpdateNotification() {
-  const notification = document.createElement('div');
-  notification.className = 'update-notification';
-  notification.innerHTML = `
-    <div class="update-content">
-      <p>تحديث جديد متوفر!</p>
-      <button onclick="window.location.reload()">تحديث الآن</button>
-    </div>
-  `;
-  document.body.appendChild(notification);
-}
-
 
         </script>
     </main>

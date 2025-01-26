@@ -1,156 +1,80 @@
 {
- "name": "تاكسي العراق",
- "short_name": "تاكسي العراق",
- "version": "2.0.0", 
- "start_url": "/Pasha-Taxi-/",
- "scope": "/Pasha-Taxi-/",
- "display": "standalone",
- "background_color": "#000000",
- "theme_color": "#FFD700",
- "orientation": "portrait-primary",
- "description": "خدمة حجز سيارات الأجرة الأفضل في العراق",
- "categories": ["travel", "transportation"],
- "lang": "ar",
- "dir": "rtl",
+  "name": "تاكسي العراق",
+  "short_name": "تاكسي العراق",
+    "start_url": "/Pasha-Taxi-/",
+      "scope": "/Pasha-Taxi-/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FFD700",
+  "orientation": "portrait-primary",
  
- "icons": [
-   {
-     "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
-     "type": "image/png",
-     "sizes": "192x192",
-     "purpose": "any maskable"
-   },
-   {
-     "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
-     "type": "image/png",
-     "sizes": "384x384"
-   },
-   {
-     "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
-     "type": "image/png",
-     "sizes": "512x512"
-   },
-   {
-     "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
-     "type": "image/png",
-     "sizes": "1024x1024"
-   }
- ],
-
- "screenshots": [
-   {
-     "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
-     "type": "image/png",
-     "sizes": "1080x1920"
-   }
- ],
-
- "splash_screens": [
-   {
-     "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
-     "sizes": "2048x2732",
-     "type": "image/png"
-   }
- ],
-
- "shortcuts": [
-   {
-     "name": "البحث عن سائق",
-     "url": "/Pasha-Taxi-/search",
-     "icons": [
-       {
-         "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
-         "sizes": "96x96"
-       }
-     ]
-   }
- ],
-
- "notification_preferences": {
-   "vibrate": true,
-   "sound": true,
-   "alerts": ["new_driver", "trip_updates", "chat_messages"]
- },
-
- "permissions": [
-   "gcm",
-   "notifications",
-   "geolocation"
- ],
-
- "serviceworker": {
-   "src": "/Pasha-Taxi-/firebase-messaging-sw.js",
-   "scope": "/Pasha-Taxi-/"
- },
-
- "update_preferences": {
-   "auto_update": true,
-   "update_interval": "24h",
-   "check_for_updates": true,
-   "update_strategy": "background",
-   "notification_on_update": true,
-   "force_update_after": "72h",
-   "backup_data": true,
-   "rollback_support": true
- },
-
- "cache_settings": {
-   "cache_version": "2.0.0",
-   "max_age": "7d",
-   "strategy": "network-first", 
-   "assets_to_cache": [
-     "/Pasha-Taxi-/",
-     "/Pasha-Taxi-/index.html",
-     "/Pasha-Taxi-/style.css",
-     "/Pasha-Taxi-/app.js",
-     "/Pasha-Taxi-/images/*",
-     "/Pasha-Taxi-/icons/*",
-     "/Pasha-Taxi-/firebase-messaging-sw.js",
-     "/Pasha-Taxi-/manifest.json"
-   ],
-   "cache_strategies": {
-     "images": "cache-first",
-     "fonts": "cache-first", 
-     "scripts": "network-first",
-     "styles": "network-first",
-     "api": "network-only"
-   },
-   "dynamic_caching": true,
-   "offline_page": "/Pasha-Taxi-/offline.html",
-   "cache_cleanup_threshold": "100MB"
- },
-
- "minimum_requirements": {
-   "chrome_version": "76",
-   "safari_version": "11.3",
-   "firefox_version": "67",
-   "edge_version": "79"
- },
-
- "supported_locales": ["ar", "ar-IQ"],
-
- "app_settings": {
-   "offline_support": true,
-   "push_notifications": true,
-   "location_services": true,
-   "background_sync": true,
-   "analytics_enabled": true,
-   "battery_optimization": true,
-   "auto_reload": true,
-   "error_reporting": true,
-   "crash_recovery": true,
-   "data_compression": true
- },
-
- "performance_settings": {
-   "minimum_disk_space": "50MB",
-   "recommended_memory": "2GB",
-   "target_fps": 60,
-   "max_concurrent_connections": 6,
-   "image_optimization": true,
-   "script_optimization": true,
-   "caching_strategy": "aggressive",
-   "load_balancing": true,
-   "request_timeout": 30000
- }
+  "description": "خدمة حجز سيارات الأجرة الأفضل في العراق",
+  "categories": ["travel", "transportation"],
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
+      "type": "image/png",
+      "sizes": "384x384"
+    },
+    {
+      "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
+      "type": "image/png",
+      "sizes": "1024x1024"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
+      "type": "image/png",
+      "sizes": "1080x1920"
+    }
+  ],
+  "splash_screens": [
+    {
+      "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
+      "sizes": "2048x2732",
+      "type": "image/png"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "shortcuts": [
+    {
+      "name": "البحث عن سائق",
+      "url": "/Pasha-taxi-/search",
+      "icons": [
+        {
+          "src": "https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/driver-images%2F7605a607-6cf8-4b32-aee1-fa7558c98452.png?alt=media&token=5cf9e67c-ba6e-4431-a6a0-79dede15b527",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "notification_preferences": {
+    "vibrate": true,
+    "sound": true,
+    "alerts": ["new_driver", "trip_updates", "chat_messages"]
+  },
+  "permissions": [
+    "gcm",
+    "notifications",
+    "geolocation"
+  ],
+  "serviceworker": {
+    "src": "/Pasha-Taxi-/firebase-messaging-sw.js",
+    "scope": "/Pasha-Taxi-/"
+  }
 }
