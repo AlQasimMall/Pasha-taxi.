@@ -22,6 +22,9 @@
     <link rel="manifest" href="./manifest.json">
 
     <!-- External CSS Libraries -->
+    
+    <!-- في قسم head من HTML -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
@@ -51,6 +54,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    
+    <!-- في قسم head من HTML -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
     <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -4239,6 +4247,19 @@ body {
 }
 
 
+/* أنماط قسم السائقين في الجوار */
+.nearby-transition {
+    transition: all 0.3s ease-in-out;
+}
+
+/* تحسين مظهر البطاقات على الأجهزة المحمولة */
+@media (max-width: 768px) {
+    .driver-card {
+        margin: 10px 5px;
+    }
+}
+
+
     </style>
 </head>
 <body>
@@ -4290,11 +4311,10 @@ body {
                             <a href="/" class="bottom-nav-item">
                                 <i class="fas fa-home"></i>
                                 <span>الرئيسية</span>
-                            </a>
                             <a href="/explore" class="bottom-nav-item">
-                                <i class="fas fa-compass"></i>
-                                <span>استكشاف</span>
-                            </a>
+    <i class="fas fa-compass"></i>
+    <span>استكشاف السائقين</span>
+</a>
                             <a href="/favorites" class="bottom-nav-item">
                                 <i class="fas fa-star"></i>
                                 <span>المفضلة</span>
@@ -5142,6 +5162,8 @@ body {
     </div>
 </div>
 
+<!-- إضافة قسم السائقين في الجوار -->
+<div id="nearbyDriversRoot" style="display: none;"></div>
 
 
     <!-- Scripts -->
@@ -8942,6 +8964,76 @@ document.addEventListener('DOMContentLoaded', () => {
         startDriverLocationTracking(activeDriverId);
     }
 });
+
+// تهيئة ميزة السائقين في الجوار
+function initializeNearbyDrivers() {
+    // إضافة مستمعي الأحداث لأزرار التنقل
+    const exploreLink = document.querySelector('a[href="/explore"]');
+    const homeLink = document.querySelector('a[href="/"]');
+    const nearbyRoot = document.getElementById('nearbyDriversRoot');
+    const mapElement = document.getElementById('map');
+    const filterElement = document.querySelector('.location-filter');
+
+    // تحميل كومبوننت السائقين في الجوار
+    function loadNearbyDrivers() {
+        const NearbyDrivers = React.lazy(() => import('./nearby-drivers.js'));
+        ReactDOM.render(
+            React.createElement(
+                React.Suspense,
+                { fallback: React.createElement('div', { className: 'loading' }, 'جاري التحميل...') },
+                React.createElement(NearbyDrivers)
+            ),
+            nearbyRoot
+        );
+    }
+
+    // معالجة النقر على زر الاستكشاف
+    exploreLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // إخفاء العناصر الحالية بتأثير متحرك
+        mapElement.style.opacity = '0';
+        filterElement.style.opacity = '0';
+        
+        setTimeout(() => {
+            mapElement.style.display = 'none';
+            filterElement.style.display = 'none';
+            
+            // إظهار قسم السائقين في الجوار
+            nearbyRoot.style.display = 'block';
+            setTimeout(() => {
+                nearbyRoot.style.opacity = '1';
+            }, 50);
+            
+            // تحميل الكومبوننت
+            loadNearbyDrivers();
+        }, 300);
+    });
+
+    // معالجة النقر على زر الرئيسية
+    homeLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // إخفاء قسم السائقين في الجوار
+        nearbyRoot.style.opacity = '0';
+        
+        setTimeout(() => {
+            nearbyRoot.style.display = 'none';
+            
+            // إظهار العناصر الرئيسية
+            mapElement.style.display = 'block';
+            filterElement.style.display = 'block';
+            
+            setTimeout(() => {
+                mapElement.style.opacity = '1';
+                filterElement.style.opacity = '1';
+            }, 50);
+        }, 300);
+    });
+}
+
+// تشغيل التهيئة عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', initializeNearbyDrivers);
 
         </script>
     </main>
